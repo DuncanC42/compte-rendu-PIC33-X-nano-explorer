@@ -1,0 +1,86 @@
+# =============================================================
+#  PROJECT.YAML — Fichier de configuration du projet
+#  C'est le SEUL fichier à modifier d'un projet à l'autre.
+# =============================================================
+
+# --- Identité du document ---
+title: "Titre du Document"
+subtitle: "Sous-titre ou accroche courte"
+author: "Votre Nom"
+author_email: "votre@email.com"
+author_role: "Votre rôle / titre"
+date: "Juin 2026"
+version: "1.0"
+doc_type: "report"
+# doc_type options : report | proposal | spec | brief | readme
+
+# --- Destinataire ---
+recipient_name: "Prénom Nom"
+recipient_company: "Entreprise Destinataire"
+recipient_role: "Poste du destinataire"
+
+# --- Expéditeur / Marque ---
+sender_company: "Votre Entreprise"
+sender_website: "https://votresite.com"
+logo: "./assets/images/logo.png"
+
+# --- Langue & Localisation ---
+lang: "fr-FR"
+# Options ISO 639 : fr-FR | en-US | en-GB | de-DE | es-ES
+
+# =============================================================
+#  THEME — Couleurs & Typographie
+#  Modifier ici pour changer l'identité visuelle complète.
+# =============================================================
+
+theme:
+  # Palette
+  primary:    "#2563EB"   # Couleur principale (titres, liens, accents)
+  secondary:  "#64748B"   # Couleur secondaire (sous-titres, labels)
+  accent:     "#F59E0B"   # Couleur d'accentuation (highlights, badges)
+  text:       "#1F2937"   # Texte principal
+  text_muted: "#6B7280"   # Texte secondaire / légendes
+  bg:         "#FFFFFF"   # Fond principal
+  bg_alt:     "#F8FAFC"   # Fond alternatif (tableaux, blocs)
+  border:     "#E2E8F0"   # Couleur des bordures
+  code_bg:    "#1E293B"   # Fond des blocs de code
+  code_text:  "#E2E8F0"   # Texte des blocs de code
+
+  # Typographie
+  font_body:    "'Inter', 'Helvetica Neue', Arial, sans-serif"
+  font_heading: "'Inter', 'Helvetica Neue', Arial, sans-serif"
+  font_mono:    "'JetBrains Mono', 'Fira Code', 'Courier New', monospace"
+  font_size:    "16px"
+  line_height:  "1.75"
+
+  # Mise en page
+  max_width:    "860px"
+  border_radius: "6px"
+
+# =============================================================
+#  OPTIONS DE RENDU
+# =============================================================
+layout:
+  toc: true             # Afficher la table des matières
+  toc_depth: 3          # Profondeur de la TOC (1-6)
+  numbered_sections: false
+  cover_page: true      # Afficher une page de couverture
+  header: true          # Afficher le header sur chaque section
+  footer: true          # Afficher le footer
+  papersize: "a4"       # a4 | letter | a3
+  margin: "2.5cm"
+
+# =============================================================
+#  CONTENU DES PARTIALS
+#  Variables injectées dans _header.md et _footer.md
+# =============================================================
+header:
+  show_logo: true
+  show_title: true
+  show_nav: false       # Navigation (utile pour HTML multi-page)
+
+footer:
+  show_author: true
+  show_date: true
+  show_page_number: true
+  custom_text: ""       # Texte personnalisé dans le footer (optionnel)

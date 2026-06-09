@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="$lang$" xml:lang="$lang$" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="$author$" />
+  <meta name="date" content="$date$" />
+  <title>$title$ $if(subtitle)$ — $subtitle$$endif$</title>
+
+  <!-- Fonts (optionnel : remplacer par des polices locales pour offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Thème (variables CSS générées depuis project.yaml) -->
+  <link rel="stylesheet" href="./assets/css/theme.css" />
+  <!-- Base (structure, composants) -->
+  <link rel="stylesheet" href="./assets/css/base.css" />
+
+  $for(css)$
+  <link rel="stylesheet" href="$css$" />
+  $endfor$
+
+  $if(highlighting-css)$
+  <style>$highlighting-css$</style>
+  $endif$
+</head>
+
+<body>
+
+$-- ===== HEADER ===== --$
+$if(header-includes)$
+$header-includes$
+$endif$
+
+$-- ===== COVER PAGE ===== --$
+$if(cover_page)$
+<div class="cover-page">
+  $if(logo)$
+  <div class="cover-logo">
+    <img src="$logo$" alt="$sender_company$" />
+  </div>
+  $endif$
+
+  <div class="cover-content">
+    $if(doc_type)$<div class="cover-doc-type">$doc_type$</div>$endif$
+    <h1 class="cover-title">$title$</h1>
+    $if(subtitle)$<p class="cover-subtitle">$subtitle$</p>$endif$
+  </div>
+
+  <div class="cover-meta">
+    $if(author)$
+    <div class="cover-meta-block">
+      <span class="cover-label">Préparé par</span>
+      <span class="cover-value">$author$</span>
+      $if(sender_company)$<span class="cover-value muted">$sender_company$</span>$endif$
+    </div>
+    $endif$
+    $if(recipient_name)$
+    <div class="cover-meta-block">
+      <span class="cover-label">Destinataire</span>
+      <span class="cover-value">$recipient_name$</span>
+      $if(recipient_company)$<span class="cover-value muted">$recipient_company$</span>$endif$
+    </div>
+    $endif$
+    $if(date)$
+    <div class="cover-meta-block">
+      <span class="cover-label">Date</span>
+      <span class="cover-value">$date$</span>
+    </div>
+    $endif$
+    $if(version)$
+    <div class="cover-meta-block">
+      <span class="cover-label">Version</span>
+      <span class="cover-value">$version$</span>
+    </div>
+    $endif$
+  </div>
+</div>
+$endif$
+
+$-- ===== NAVIGATION HEADER ===== --$
+<header class="doc-header">
+  <div class="header-brand">
+    $if(logo)$<img src="$logo$" alt="$sender_company$" class="header-logo" />$endif$
+    $if(sender_company)$<span class="header-company">$sender_company$</span>$endif$
+  </div>
+  <div class="header-doc-info">
+    <span class="header-title">$title$</span>
+    $if(version)$<span class="header-meta">v$version$ · $date$</span>$endif$
+  </div>
+</header>
+
+$-- ===== TABLE DES MATIÈRES ===== --$
+$if(toc)$
+<nav id="TOC" role="doc-toc">
+  <strong>Table des matières</strong>
+  $table-of-contents$
+</nav>
+$endif$
+
+$-- ===== CONTENU PRINCIPAL ===== --$
+<main>
+$body$
+</main>
+
+$-- ===== FOOTER ===== --$
+<footer class="doc-footer">
+  <div class="footer-left">
+    $if(sender_company)$<span>$sender_company$</span>$endif$
+    $if(sender_website)$<a href="$sender_website$">$sender_website$</a>$endif$
+  </div>
+  <div class="footer-center">
+    $if(recipient_company)$
+    <span>Confidentiel — Document préparé pour $recipient_company$</span>
+    $endif$
+  </div>
+  <div class="footer-right">
+    $if(date)$<span>$date$</span>$endif$
+  </div>
+</footer>
+
+</body>
+</html>

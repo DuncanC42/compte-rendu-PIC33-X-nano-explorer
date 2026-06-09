@@ -1,0 +1,20 @@
+/* AUTO-GÉNÉRÉ depuis config/project.yaml — ne pas modifier manuellement */
+:root {
+  --color-primary:    #2563EB;
+  --color-secondary:  #64748B;
+  --color-accent:     #F59E0B;
+  --color-text:       #1F2937;
+  --color-text-muted: #6B7280;
+  --color-bg:         #FFFFFF;
+  --color-bg-alt:     #F8FAFC;
+  --color-border:     #E2E8F0;
+  --color-code-bg:    #1E293B;
+  --color-code-text:  #E2E8F0;
+  --font-body:    'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --font-heading: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --font-size:    16px;
+  --line-height:  1.75;
+  --max-width:    860px;
+  --border-radius: 6px;
+}
