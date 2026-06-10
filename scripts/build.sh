@@ -82,7 +82,6 @@ build_html() {
     local outfile="$OUTPUT/$slug.html"
 
     pandoc \
-        "$CONFIG" \
         $(get_content_files) \
         --to html5 \
         --standalone \
@@ -125,6 +124,10 @@ echo " Markdown Template — Build Script  "
 echo "==================================="
 
 build_theme_css
+# Copier les assets dans output/ pour que les chemins relatifs du HTML fonctionnent
+mkdir -p "$OUTPUT/assets/css"
+cp "$ROOT/assets/css/theme.css" "$OUTPUT/assets/css/theme.css"
+[[ -f "$ROOT/assets/css/base.css" ]] && cp "$ROOT/assets/css/base.css" "$OUTPUT/assets/css/base.css"
 
 case "$FORMAT" in
     html) OUT=$(build_html) ;;
