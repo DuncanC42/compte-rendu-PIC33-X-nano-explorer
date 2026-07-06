@@ -4,11 +4,11 @@
 # =============================================================
 
 # --- Identité du document ---
-title: "Titre du Document"
-subtitle: "Sous-titre ou accroche courte"
-author: "Votre Nom"
-author_email: "votre@email.com"
-author_role: "Votre rôle / titre"
+title: "Rapport d'étude des processus de communication sur un PIC33"
+subtitle: "Mise en place de différents processus de communication via des projets entre le PIC33 et le Nano explorer"
+author: "Cadoret Duncan"
+author_email: "d25cadore@enib.fr"
+author_role: "Étudiant à l'École Nationale d'Ingénieurs de Brest / Stage international"
 date: "Juin 2026"
 version: "1.0"
 doc_type: "report"
@@ -22,7 +22,7 @@ recipient_role: "Poste du destinataire"
 # --- Expéditeur / Marque ---
 sender_company: "Votre Entreprise"
 sender_website: "https://votresite.com"
-logo: "./assets/images/logo.png"
+logo: "./assets/images/UMC-EN.png"
 
 # --- Langue & Localisation ---
 lang: "fr-FR"
@@ -34,17 +34,16 @@ lang: "fr-FR"
 # =============================================================
 
 theme:
-  # Palette
-  primary:    "#2563EB"   # Couleur principale (titres, liens, accents)
-  secondary:  "#64748B"   # Couleur secondaire (sous-titres, labels)
-  accent:     "#F59E0B"   # Couleur d'accentuation (highlights, badges)
-  text:       "#1F2937"   # Texte principal
-  text_muted: "#6B7280"   # Texte secondaire / légendes
-  bg:         "#FFFFFF"   # Fond principal
-  bg_alt:     "#F8FAFC"   # Fond alternatif (tableaux, blocs)
-  border:     "#E2E8F0"   # Couleur des bordures
-  code_bg:    "#1E293B"   # Fond des blocs de code
-  code_text:  "#E2E8F0"   # Texte des blocs de code
+  primary:    "#1A3A6B"   # Bleu UMC — titres, liens, barre de couverture
+  secondary:  "#1E2D5A"   # Bleu marine ENIB — sous-titres, labels
+  accent:     "#E8607A"   # Rose ENIB — highlights, badges, puces importantes
+  text:       "#1F2937"
+  text_muted: "#6B7280"
+  bg:         "#FFFFFF"
+  bg_alt:     "#F0F4FA"   # Légère teinte bleu UMC sur les blocs
+  border:     "#D0D7E3"
+  code_bg:    "#1E2D5A"   # Bleu ENIB pour les blocs code
+  code_text:  "#F9FAFB"
 
   # Typographie
   font_body:    "'Inter', 'Helvetica Neue', Arial, sans-serif"

@@ -107,8 +107,17 @@ build_pdf() {
 
     [[ -f "$htmlfile" ]] || build_html >/dev/null
 
+    # Copier pdf-overrides.css si présent
+    local overrides="$ROOT/assets/css/pdf-overrides.css"
+    [[ -f "$overrides" ]] && cp "$overrides" "$OUTPUT/assets/css/pdf-overrides.css"
+
     if command -v weasyprint >/dev/null 2>&1; then
-        weasyprint "$htmlfile" "$pdffile"
+        if [[ -f "$OUTPUT/assets/css/pdf-overrides.css" ]]; then
+            weasyprint "$htmlfile" "$pdffile" \
+                --stylesheet "$OUTPUT/assets/css/pdf-overrides.css"
+        else
+            weasyprint "$htmlfile" "$pdffile"
+        fi
         echo "  [OK] $pdffile (weasyprint)"
     elif command -v wkhtmltopdf >/dev/null 2>&1; then
         wkhtmltopdf --enable-local-file-access "$htmlfile" "$pdffile"

@@ -1,0 +1,163 @@
+/* =============================================================
+   PDF-OVERRIDES.CSS — Surcouche WeasyPrint (chargé après base.css)
+   Remplace les propriétés CSS non supportées par WeasyPrint.
+   Ne pas utiliser pour le rendu HTML.
+   ============================================================= */
+
+/* ---- Propriétés non supportées → supprimées ou remplacées ---- */
+
+/* font-display ignoré par WeasyPrint : on ne peut pas l'éviter dans
+   les @font-face Google Fonts, mais on peut redéfinir les polices
+   en local uniquement pour éviter les warnings si les @font-face
+   sont injectés par le template HTML. */
+/* Solution : les @font-face sont dans le template ; on ne les
+   redéclare pas ici — WeasyPrint les ignore sans planter. */
+
+/* text-underline-offset non supporté → on désactive juste la prop */
+a { text-decoration: underline; }
+
+/* overflow-x non supporté → les pre débordent si trop longs.
+   WeasyPrint gère le retour à la ligne via white-space. */
+pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-x: visible;
+}
+
+/* accent-color non supporté → sans effet sur le PDF de toute façon */
+
+/* ---- Cover page : grid → flexbox colonne ---- */
+/* WeasyPrint ne supporte pas display:grid ni gap.
+   On remplace par une flexbox colonne avec margin. */
+.cover-page {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  /* min-height: 90vh ignoré → on fixe une hauteur en mm pour A4 */
+  height: 257mm;
+  padding: 3rem 0;
+  page-break-after: always;
+}
+
+/* cover-meta : grid → flex wrap avec margin entre blocs */
+.cover-meta {
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  padding-top: 2rem;
+  border-top: 2px solid var(--color-border);
+}
+
+.cover-meta-block {
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  margin-right: 2rem;
+  margin-bottom: 1rem;
+  min-width: 140px;
+}
+
+/* gap remplacé par margin sur les éléments enfants */
+.header-brand { margin-right: 0.75rem; }
+.header-doc-info > * { margin-bottom: 0.1rem; }
+.footer-left > *, .footer-center > *, .footer-right > * { margin-bottom: 0.15rem; }
+
+/* ---- doc-header / doc-footer : flex sans gap ---- */
+.doc-header {
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.doc-footer {
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 1rem 0 0;
+  margin-top: 3rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* ---- Listes : s'assurer que les markers s'affichent en PDF ---- */
+ul, ol {
+  margin: 0.5rem 0 1rem 1.5rem;
+  padding-left: 0;
+}
+
+ul { list-style-type: disc; }
+ul ul { list-style-type: circle; }
+ul ul ul { list-style-type: square; }
+ol { list-style-type: decimal; }
+
+li { margin-bottom: 0.3rem; }
+
+/* ---- Code : syntaxe Pandoc breezedark ---- */
+/* WeasyPrint rend les span.sourceCode correctement si les
+   couleurs sont en inline style (ce que pandoc --highlight-style fait).
+   On s'assure juste que le fond et le texte par défaut sont lisibles. */
+pre, pre code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+pre {
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
+  border-radius: var(--border-radius);
+  padding: 1.1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-code-text);
+}
+
+/* Inline code */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 0.15em 0.45em;
+  color: var(--color-primary);
+}
+
+/* ---- Pagination PDF ---- */
+@page {
+  size: A4;
+  margin: 20mm 18mm 20mm 18mm;
+}
+
+h1, h2, h3 { page-break-after: avoid; }
+pre, table, blockquote, figure { page-break-inside: avoid; }
