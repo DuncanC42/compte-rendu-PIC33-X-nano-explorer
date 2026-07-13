@@ -341,9 +341,6 @@ Now one physical press = exactly **one** toggle, no matter how the contact bounc
 **PWM** — generating an analog-like level (LED brightness, servo angle) from a digital pin, using the dsPIC's PWM/SCCP modules.
 
 
-## ADC Project
-
-*Explaining what ADC is and how it's useful*
 
 <div style='page-break-after: always;'></div>
 
@@ -712,3 +709,597 @@ This reading will now feed two outputs:
 
 - **Colour LED (PWM)** — drive the on-board RGB LED with three PWM channels so its colour follows the proximity value. This is where PWM is finally used — and unlike a raw signal, you validate it directly with your eyes, no oscilloscope required.
 - **Serial output (UART)** — send the proximity value to the PC over the debugger's virtual COM port (CDC), to read it in a terminal or plot it live in the Data Visualizer.
+
+<div style='page-break-after: always;'></div>
+
+## Serial Output Project (UART)
+
+In this section you will send the live proximity value to a PC over the serial port, so you can read it in a terminal or plot it in real time with the MPLAB Data Visualizer.
+
+This completes the sensor chain started in the previous section: the proximity value now goes to **three places** — the OLED, (later) the colour LED, and now the PC. The serial link also gives you something valuable for every project that follows: a **debug console**, a way to print values from the microcontroller straight to your computer.
+
+### Goals
+
+In this project you will:
+
+- Configure a **UART** and understand that it reaches the PC through the on-board debugger's **virtual COM port** (CDC)
+- Get the **TX/RX crossover** right — the most common UART mistake
+- Send the proximity value to the PC, one reading per line
+
+The tools involved are the **VCNL4200 sensor**, the **OLED**, and the **on-board debugger** (which bridges the UART to USB).
+
+### Physical setup
+
+There is **nothing to wire**. On the Curiosity Nano, one UART of the dsPIC is hard-wired to the on-board debugger, which forwards it to the PC as a virtual COM port over the **same USB cable** you already use to program the board. The two pins involved (RC10, RC11) are fixed by the board design, not something you jumper.
+
+### How the serial link works
+
+UART is a two-wire asynchronous link: one line to transmit (**TX**), one to receive (**RX**). The key rule is that the two devices are **crossed**: one device's TX must reach the other device's RX. So the microcontroller's **TX** connects to the debugger's **RX**, and vice versa.
+
+This is where the board's labels can trick you. On the pin mapping, the CDC lines are named from the **PC's point of view**:
+
+- **CDC RX** (pin RC10) is what the *PC receives* → this must be the **dsPIC's TX** (`U1TX`).
+- **CDC TX** (pin RC11) is what the *PC sends* → this must be the **dsPIC's RX** (`U1RX`).
+
+Get this backwards and nothing appears on the PC, even though everything compiles and runs.
+
+### Setting up on MPLAB
+
+#### 1. Add and configure the UART
+
+Open MCC Melody and add the **UART1** module:
+
+- **Baud rate**: `115200`
+- **Data format**: `8N1` (8 data bits, no parity, 1 stop bit) — the defaults
+
+In the **Pin Manager (Grid View)**, assign:
+
+- `U1TX` → **RC10**
+- `U1RX` → **RC11**
+
+Then **Generate**.
+
+![](../assets/images/05_UART/01_uart_pins.png)
+*Figure — UART1 outputs assigned in the Pin Grid View: U1TX on RC10, U1RX on RC11.*
+
+This generates `uart1.h` / `uart1.c`, exposing among others:
+
+- `UART1_Write(uint8_t data)` — send one byte
+- `UART1_IsTxReady()` — true when the transmit buffer can accept a byte
+- `UART1_Read()` / `UART1_IsRxReady()` — for the receive side (not used here)
+
+#### 2. `printf` vs `UART1_Write`
+
+MCC offers an option, **"Redirect STDIO to UART"**. If you enable it, `printf()` sends its output straight to the UART and you can write `printf("%u\r\n", value)`. If it is **not** enabled — which is the default — `printf` compiles but sends its output nowhere, and the screen on the PC stays empty. That silent failure is easy to mistake for a wiring problem.
+
+Since STDIO redirection is not enabled here, we send bytes explicitly with `UART1_Write`, wrapped in a small helper that waits for the transmitter to be free:
+
+```c
+// Send a string over the UART, byte by byte
+static void UART_Print(const char *s)
+{
+    while (*s)
+    {
+        while (!UART1_IsTxReady()) { }   // wait until the TX buffer is free
+        UART1_Write(*s++);
+    }
+}
+```
+
+#### 3. Putting it together
+
+We reuse the proximity read and OLED display from the previous section, and add one serial print per loop. The `\r\n` (carriage return + newline) at the end puts each value on its own line — required for the Data Visualizer to plot them and for terminals to display them cleanly.
+
+```c
+#include "mcc_generated_files/system/system.h"
+#include "mcc_generated_files/system/pins.h"
+#include "mcc_generated_files/i2c_host/i2c1.h"
+#include "mcc_generated_files/uart/uart1.h"
+#include "ssd1306.h"
+#include <stdio.h>
+#define FCY 100000000UL
+#include <libpic30.h>
+
+#define VCNL4200_ADDR     0x51
+#define VCNL4200_PS_DATA  0x08
+#define VCNL4200_PS_CONF  0x03
+
+static void VCNL4200_Init(void)
+{
+    uint8_t cfg[3] = { VCNL4200_PS_CONF, 0x08, 0x00 };
+    while (I2C1_IsBusy()) { }
+    I2C1_Write(VCNL4200_ADDR, cfg, sizeof(cfg));
+    while (I2C1_IsBusy()) { }
+}
+
+static uint16_t VCNL4200_ReadReg(uint8_t reg)
+{
+    uint8_t rx[2] = {0, 0};
+    while (I2C1_IsBusy()) { }
+    I2C1_WriteRead(VCNL4200_ADDR, &reg, 1, rx, 2);
+    while (I2C1_IsBusy()) { }
+    return (uint16_t)(rx[0] | (rx[1] << 8));
+}
+
+static void UART_Print(const char *s)
+{
+    while (*s)
+    {
+        while (!UART1_IsTxReady()) { }
+        UART1_Write(*s++);
+    }
+}
+
+uint16_t prox;
+char buffer[16];
+
+int main(void)
+{
+    SYSTEM_Initialize();
+    SSD1306_Init();
+    SSD1306_Clear();
+    VCNL4200_Init();
+
+    while (1)
+    {
+        prox = VCNL4200_ReadReg(VCNL4200_PS_DATA);
+
+        sprintf(buffer, "PROX:%5u   ", prox);
+        SSD1306_SelectPage(0);
+        SSD1306_WriteString(buffer);
+
+        sprintf(buffer, "%u\r\n", prox);   // one value per line
+        UART_Print(buffer);
+
+        __delay_ms(100);
+    }
+}
+```
+
+#### 4. Reading it on the PC
+
+Build and program the board, then open the virtual COM port at **115200 baud**.
+
+On **Linux**, find the port and read it:
+
+```bash
+ls /dev/ttyACM*            # usually /dev/ttyACM0
+screen /dev/ttyACM0 115200 # quit with Ctrl+A then K then y
+```
+
+If `screen` is not installed, `minicom -D /dev/ttyACM0 -b 115200` works too, or simply `stty -F /dev/ttyACM0 115200 && cat /dev/ttyACM0` just to watch the stream. If you get a *permission denied*, add yourself to the `dialout` group (`sudo usermod -aG dialout $USER`, then log out and back in).
+
+You should see the proximity values scroll by, rising when you move your hand toward the sensor. In the **MPLAB Data Visualizer**, select the same COM port and baud rate to plot the values as a live curve — the software oscilloscope you were missing.
+
+`[CAPTURE: terminal (or Data Visualizer plot) showing the proximity values streaming and reacting to a hand]`
+
+### What you learned
+
+- A UART is **crossed**: the microcontroller's TX goes to the receiver's RX. On this board, board labels are named from the PC's side (CDC RX = the dsPIC's TX).
+- The Curiosity Nano bridges the UART to a **virtual COM port** over the debugger's USB — no extra cable or adapter.
+- Ending each message with `\r\n` is what makes terminals and the Data Visualizer treat values as separate lines.
+- Without **"Redirect STDIO to UART"**, `printf` sends nothing — send bytes with `UART1_Write` instead.
+
+### Next
+
+**SPI** — a faster, synchronous link, used on this board to reach the DAC (MCP4821) that drives the speaker, and later the addressable RGB ring.
+
+> *Deferred refinement:* driving the on-board colour LED from the proximity value (three PWM channels) is left as a later addition — the LED is wired to pins the high-resolution PWM module cannot reach directly, so it needs either a different PWM peripheral routing or a software (bit-banged) PWM.
+
+
+## Let's play some music !
+
+Our Curiosity nano explorer has a speaker, if you look at the documentation you'll see that it is a **MCP4821** and on its own datasheet if you go to the section 5.0 about *Serial Interface* you can see bits and registers you'll modify to give the right infomation to the speaker.
+
+![](../assets/images/05_music/00_speaker_write_command.png)
+
+
+On peut relever que : 
+
+DAC CS => 
+DAC LDAC
+SP
+
+ Sur ton mapping, localise les lignes : 
+ SPI MOSI => RC0
+ SPI SCK => RC2
+ DAC CS (IO 26), DAC LDAC (IO 36), SPEAKER ENABLE (IO 12).
+
+---
+
+<div style='page-break-after: always;'></div>
+
+## Sound Generation Project (SPI + DAC) — interactive
+
+In this project you make the board **play sound**. The on-board speaker is not driven directly by the microcontroller: it is fed by an **MCP4821 DAC** connected over **SPI**. So generating sound means learning SPI and driving a DAC — two objectives in one.
+
+The project is built in stages: first get a signal out of the DAC, then make it audible, then shape real waveforms. This section covers the first two.
+
+> **How to use this section.** Each step starts with a **task** — what to achieve, and where to look. Try it yourself first. The exact answer is hidden under *"Show solution"* — open it only to check yourself or if you are stuck.
+
+### Goals
+
+- Configure the **SPI** peripheral as a host (master)
+- Understand and build the **MCP4821 command frame**
+- Output a voltage from the DAC and verify it on an oscilloscope
+- Produce an audible tone through the speaker
+
+The tools involved are the **MCP4821 DAC**, the **speaker circuit**, and an **oscilloscope** to observe the signal.
+
+---
+
+### Step 1 — Understand the DAC command frame
+
+**Task.** Open the MCP4821 datasheet and find the *Write Command Register* figure. The DAC receives a **16-bit word** over SPI. Work out the bits you must send to output a value on **channel A**, with **gain ×1** and the **output active**. What is the final 16-bit word for a 12-bit sample `value`?
+
+<details>
+<summary>Show solution</summary>
+
+The 16-bit word is **4 configuration bits** followed by **12 data bits**:
+
+| Bit | Name | Value | Meaning |
+|----|------|-------|---------|
+| 15 | A/B  | 0 | channel A (the only one on the MCP4821) |
+| 14 | —    | 0 | don't care |
+| 13 | GA   | 1 | gain ×1 → output range 0–2.048 V |
+| 12 | SHDN | 1 | output active (not shut down) |
+| 11–0 | data | value | the 12-bit sample (0–4095) |
+
+So the config nibble is `0b0011 = 0x3`, and:
+
+```
+word = 0x3000 | (value & 0x0FFF);
+```
+
+You send it **most-significant byte first**: high byte, then low byte, with **CS low** during the transfer and **CS high** afterwards to latch the output.
+</details>
+
+---
+
+### Step 2 — Identify the pins
+
+**Task.** Using the *Curiosity Nano Explorer* pin mapping, find which dsPIC pin carries each of these signals: **SPI MOSI**, **SPI SCK**, **DAC CS**, **SPEAKER ENABLE**. Also check the **DAC LDAC** line — what do you notice about it?
+
+<details>
+<summary>Show solution</summary>
+
+| Signal | dsPIC pin | Role |
+|--------|-----------|------|
+| SDO1 (MOSI) | **RC0** | data µC → DAC (the DAC's SDI input) |
+| SCK1 | **RC2** | SPI clock |
+| DAC CS | **RB14** | chip select (driven as GPIO) |
+| SPEAKER ENABLE | **RC6** | enables the audio amplifier (GPIO) |
+| DAC LDAC | *not connected* | no µC pin — tied low on the board |
+
+**LDAC is not routed to the microcontroller** (it lands on a NC pin, like the OLED reset earlier). It is tied low on the board, which means the DAC output updates on the rising edge of CS. You have nothing to control there.
+
+Note the naming trap: the DAC's input is called **SDI**, but from the microcontroller's side it is an **output** (SDO/MOSI). The µC talks (SDO) → the DAC listens (SDI).
+</details>
+
+---
+
+### Step 3 — Configure SPI and the GPIOs in MCC
+
+**Task.** In MCC Melody, add and configure the SPI peripheral as a host, and add the two GPIO outputs you need. What settings and pin assignments do you use?
+
+<details>
+<summary>Show solution</summary>
+
+**SPI1 module:**
+- Mode: **Host / Master**
+- Communication width: **8 bit**
+- Clock: **~2 MHz** (the DAC accepts up to 20 MHz)
+- SPI mode **0,0**: clock polarity *Idle Low*, data sampled in the *Middle*
+
+**Pin assignments (Grid View):**
+- `SDO1` → **RC0**
+- `SCK1` → **RC2**
+- leave `SDI1` and `SS1` unassigned (the DAC sends nothing back, and CS is handled by us)
+
+**GPIO outputs (Pins), with custom names so the macros are readable:**
+- `DAC_CS` → **RB14**, output
+- `SPKR_EN` → **RC6**, output
+
+Then **Generate**. Giving custom names produces `DAC_CS_SetLow()` etc.; without them MCC names the macros after the pin (`IO_RB14_SetLow()`).
+</details>
+
+---
+
+### Step 4 — Physical setup (the part that bites)
+
+**Task.** On this board, signals reach peripherals through **jumpers**. List everything that must be physically connected for the SPI to reach the DAC and for the DAC to reach the speaker — including anything outside the remapping area.
+
+<details>
+<summary>Show solution</summary>
+
+In the **COM / remapping** area:
+- **SPI MOSI** jumper (RC0 → the bus)
+- **SPI SCK** jumper (RC2 → the bus)
+
+In the **IO** areas:
+- **DAC CS** jumper (IO 26 → RB14)
+- **SPEAKER ENABLE** jumper (IO 12 → RC6)
+
+In the **Speaker Circuit** area:
+- the **DAC OUT ↔ SPEAKER IN** jumper (routes the DAC output into the amplifier)
+- the speaker **ON/OFF switch** must be on **ON**, and the **GAIN** switch set (LOW or HIGH)
+
+If any of these is missing, you get *no signal and no sound* — the most common cause of a silent board, and it costs nothing to check.
+</details>
+
+---
+
+### Step 5 — Write the DAC output function
+
+**Task.** Write a function `DAC_Write(uint16_t value)` that sends one sample to the DAC over SPI, using the frame from Step 1 and the API `SPI1_Exchange8bit(uint8_t)`.
+
+<details>
+<summary>Show solution</summary>
+
+```c
+static void DAC_Write(uint16_t value)
+{
+    uint16_t word = 0x3000u | (value & 0x0FFFu);   // DAC A, gain x1, active
+    DAC_CS_SetLow();
+    SPI1_Exchange8bit((uint8_t)(word >> 8));        // high byte (config + top 4 data bits)
+    SPI1_Exchange8bit((uint8_t)(word & 0xFF));      // low byte (8 data bits)
+    DAC_CS_SetHigh();                               // rising edge = output updates
+}
+```
+</details>
+
+---
+
+### Step 6 — Make a tone
+
+**Task.** Using `DAC_Write`, produce an audible **square wave** at roughly 440 Hz by alternating between two levels. Remember to enable the amplifier first. What does `main` look like?
+
+<details>
+<summary>Show solution</summary>
+
+```c
+int main(void)
+{
+    SYSTEM_Initialize();
+    SPKR_EN_SetHigh();       // enable the amplifier
+
+    while (1)
+    {
+        DAC_Write(3500);     // high level  (~1.75 V)
+        __delay_us(1136);    // half period → ~440 Hz
+        DAC_Write(600);      // low level   (~0.30 V)
+        __delay_us(1136);
+    }
+}
+```
+
+The output voltage in gain ×1 is `V = (code / 4095) × 2.048 V`, so this swings between ~0.30 V and ~1.75 V — about **1.45 V peak-to-peak** at the DAC output.
+</details>
+
+---
+
+### Step 7 — Nothing works? Debug it yourself
+
+Work through these in order. Each symptom hides the thing to check.
+
+<details>
+<summary>No sound at all, and no signal on the oscilloscope</summary>
+
+Almost always a **missing jumper** (Step 4) or the **speaker switch on OFF**. Check the four bus jumpers, the DAC OUT ↔ SPEAKER IN jumper, and the ON/OFF switch. Load a slow 1 Hz version (`DAC_Write(4095)` / `DAC_Write(0)` with `__delay_ms(500)`) and listen for a *tick… tick…*: each voltage step clicks in the speaker, which confirms the DAC and speaker path without needing the oscilloscope.
+</details>
+
+<details>
+<summary>The oscilloscope shows a still dot or garbage, not a square wave</summary>
+
+An analog oscilloscope needs a **fast, repetitive** signal and the right settings. Use the 440 Hz code, set **TIME/DIV ≈ 0.5 ms**, **VOLTS/DIV ≈ 0.5 V**, **COUPLING = DC** (not AC — AC removes the DC level and mangles the trace), and turn **TRIGGER LEVEL** until the image freezes. Make sure the channel's **GND** button is not pressed.
+</details>
+
+<details>
+<summary>A signal is visible on the scope, but no sound</summary>
+
+The DAC and SPI are fine — the problem is only the audio path. Check the **SPEAKER ENABLE** jumper, try `SPKR_EN_SetLow()` instead of `SetHigh()` (the enable polarity), the **ON/OFF switch**, and the **DAC OUT ↔ SPEAKER IN** jumper.
+</details>
+
+<details>
+<summary>The output is flat at 0 V (DAC not responding)</summary>
+
+The DAC is not receiving valid SPI. Check the **SPI mode**: the MCP4821 needs mode 0,0. If MCC left it on another mode, flip the **Clock Edge** setting, regenerate, and retest. Also confirm `SPI1_Initialize()` is called in `system.c`.
+</details>
+
+<div style='page-break-after: always;'></div>
+
+## Sound Generation — Stage 2: Real Waveforms with a Timer
+
+The first stage made a tone by alternating two levels with `__delay_us`. That works, but the timing is approximate and the CPU can do nothing else. To generate **clean, tunable waveforms**, the samples must be produced at a **fixed, precise rate** — the job of a **Timer interrupt**.
+
+In this stage you feed the DAC from a **wave table** at a constant sample rate, and you get square, triangle and sine waves whose frequency you can set exactly.
+
+### Goals
+
+- Drive the DAC at a **fixed sample rate** using a Timer interrupt
+- Understand the **phase accumulator** — how a fixed sample rate produces any frequency
+- Store and play different **wave tables** (square, triangle, sine)
+
+---
+
+### Step 1 — Why a Timer instead of `__delay`?
+
+**Task.** With the `__delay_us` loop, what two problems appear when you want a precise frequency *and* want the program to do other things (read a potentiometer, update the screen)? What rate should the samples come out at?
+
+<details>
+<summary>Show solution</summary>
+
+Two problems: the delay is **approximate** (any code you add between writes changes the period, so the pitch drifts), and the CPU is **stuck** in the delay loop, unable to do anything else.
+
+The fix is a **fixed sample rate**: output one sample every tick of a Timer interrupt. A rate of **~20 kHz** (one sample every 50 µs) is a good target — well above the audio band, so it reproduces tones cleanly. The main loop is then free for other work.
+</details>
+
+---
+
+### Step 2 — Configure the Timer in MCC
+
+**Task.** Add a Timer that fires at your sample rate (e.g. 20 kHz) and enable its interrupt. What do you configure?
+
+<details>
+<summary>Show solution</summary>
+
+- Add a **Timer** (e.g. **TMR1**) in MCC.
+- Set its **period to the sample rate**: 20 kHz → a period of **50 µs**.
+- **Enable the timer interrupt** (tick the interrupt option), so a callback runs on every period.
+- Generate. MCC produces an init and a way to register a callback — the exact name depends on the version (often `TMR1_TimeoutCallbackRegister(...)` or a `TMR1_SetInterruptHandler(...)`). Check the generated `tmr1.h` for the precise function.
+</details>
+
+---
+
+### Step 3 — The phase accumulator
+
+**Task.** You have a fixed sample rate `Fs` and a wave table of `N` samples. You want to play a note of frequency `f`. How do you decide, on each timer tick, which table entry to output? (Hint: think about how far through one cycle you advance per sample.)
+
+<details>
+<summary>Show solution</summary>
+
+Per sample you advance by a **fraction `f / Fs` of a full cycle**. The clean way to track this is a **phase accumulator**: a 32-bit counter where the whole 0…2³² range represents one full cycle.
+
+- **Phase increment** per sample: `phaseInc = f × 2³² / Fs`
+- On each tick: `phase += phaseInc;`
+- The top bits of `phase` index the table. For an `N = 256` table, the index is `phase >> 24` (top 8 bits).
+
+The accumulator wraps around naturally at the end of a cycle, and changing `f` just changes `phaseInc` — so you retune instantly without touching the table.
+</details>
+
+---
+
+### Step 4 — Build the wave tables
+
+**Task.** Create a 256-entry, 12-bit wave table (values 0–4095, centred on 2048) for a **square**, a **triangle**, and a **sine**. How do you fill each?
+
+<details>
+<summary>Show solution</summary>
+
+```c
+#include <math.h>
+#define TABLE_SIZE 256
+
+uint16_t sine[TABLE_SIZE];
+uint16_t triangle[TABLE_SIZE];
+uint16_t square[TABLE_SIZE];
+
+static void BuildTables(void)
+{
+    for (int i = 0; i < TABLE_SIZE; i++)
+    {
+        // sine: centred on 2048, amplitude 2047
+        sine[i] = (uint16_t)(2048 + 2047.0 * sin(2.0 * M_PI * i / TABLE_SIZE));
+
+        // triangle: up then down
+        triangle[i] = (i < TABLE_SIZE/2)
+                        ? (uint16_t)(i * 4095 / (TABLE_SIZE/2))
+                        : (uint16_t)((TABLE_SIZE - i) * 4095 / (TABLE_SIZE/2));
+
+        // square: first half high, second half low
+        square[i] = (i < TABLE_SIZE/2) ? 4000 : 100;
+    }
+}
+```
+
+The sine uses `sin()` once at startup, so the cost is paid only at boot, not in the interrupt.
+</details>
+
+---
+
+### Step 5 — Output samples in the interrupt
+
+**Task.** In the timer callback, advance the phase and send the current table sample to the DAC. Write the callback and the pieces it needs.
+
+<details>
+<summary>Show solution</summary>
+
+```c
+#define FS  20000UL            // sample rate (Hz), matches the timer
+
+volatile uint32_t phase = 0;
+volatile uint32_t phaseInc = 0;
+volatile uint16_t *waveform = square;   // current table
+
+static void SetFrequency(uint32_t f)
+{
+    phaseInc = (uint32_t)(((uint64_t)f << 32) / FS);
+}
+
+// called on every timer tick (register this with MCC's timer callback)
+void SampleTick(void)
+{
+    phase += phaseInc;
+    DAC_Write(waveform[phase >> 24]);   // top 8 bits -> 0..255
+}
+
+int main(void)
+{
+    SYSTEM_Initialize();
+    SPKR_EN_SetHigh();
+    BuildTables();
+    SetFrequency(440);                  // A4
+
+    TMR1_TimeoutCallbackRegister(SampleTick);  // name may differ — check tmr1.h
+
+    while (1)
+    {
+        // free for other work: read a pot, update the OLED, change waveform...
+    }
+}
+```
+
+Keep the callback short — it runs 20 000 times per second, so it must only advance the phase and write one sample.
+</details>
+
+---
+
+### Step 6 — Choose the waveform, hear the difference
+
+**Task.** Switch between square, triangle and sine at run time and listen. What changes, and how do you switch?
+
+<details>
+<summary>Show solution</summary>
+
+Point `waveform` at a different table:
+
+```c
+waveform = sine;       // smooth, mellow
+waveform = triangle;   // softer than square, richer than sine
+waveform = square;     // harsh, buzzy (lots of harmonics)
+```
+
+Same pitch, different **timbre**: the square wave is bright and buzzy (many harmonics), the sine is pure and mellow, the triangle sits in between. On the oscilloscope you will see the actual shape of each — a great figure for the report.
+</details>
+
+---
+
+### Step 7 — Not sounding right? Debug it
+
+<details>
+<summary>Sound is very faint</summary>
+
+Check the **GAIN switch** in the Speaker Circuit (LOW/HIGH) — set it to HIGH. Also make sure your table uses a wide amplitude (near 0–4095), and consider the DAC gain bit ×2 for a larger output swing.
+</details>
+
+<details>
+<summary>Pitch is wrong or drifts</summary>
+
+The **timer period must exactly match `FS`** in your code — if the timer runs at a different rate than the `FS` you use in `SetFrequency`, every note is off. Recompute the timer period and confirm it against `FS`.
+</details>
+
+<details>
+<summary>Sound is distorted / crackly</summary>
+
+The interrupt may be **too slow or overloaded**. Make sure the callback only advances the phase and writes one sample — no `sin()`, no `sprintf`, no long work inside it. Building the tables must happen once in `main`, not in the interrupt.
+</details>
+
+---
+
+### Next
+
+With clean, tunable tones you can now add **control and display**:
+
+- **A potentiometer** (reuse the ADC brick) mapped to **frequency** — turn the knob, change the pitch — or to **volume** by scaling the samples.
+- **The OLED** showing the current waveform shape, frequency, or note name.
+- Later: a **joystick** for two-axis control, or the **microphone** as an input, and eventually the **WS2812B ring** reacting to the sound for the integrated final project.
