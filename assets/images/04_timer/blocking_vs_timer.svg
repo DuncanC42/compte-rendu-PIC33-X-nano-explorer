@@ -1,0 +1,55 @@
+<svg viewBox="0 0 720 470" xmlns="http://www.w3.org/2000/svg" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+<rect x="0" y="0" width="720" height="470" fill="white"/>
+<line x1="95.0" y1="38" x2="95.0" y2="400" stroke="#D0D7E3" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="95.0" y="418" text-anchor="middle" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >0 ms</text>
+<line x1="235.0" y1="38" x2="235.0" y2="400" stroke="#D0D7E3" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="235.0" y="418" text-anchor="middle" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >500 ms</text>
+<line x1="375.0" y1="38" x2="375.0" y2="400" stroke="#D0D7E3" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="375.0" y="418" text-anchor="middle" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >1000 ms</text>
+<line x1="515.0" y1="38" x2="515.0" y2="400" stroke="#D0D7E3" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="515.0" y="418" text-anchor="middle" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >1500 ms</text>
+<line x1="655.0" y1="38" x2="655.0" y2="400" stroke="#D0D7E3" stroke-width="1" stroke-dasharray="3 4"/>
+<text x="655.0" y="418" text-anchor="middle" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >2000 ms</text>
+<line x1="70" y1="404" x2="685" y2="404" stroke="#6B7280" stroke-width="1" marker-end="url(#arr)"/>
+<text x="693" y="408" text-anchor="start" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" >t</text>
+<text x="70" y="55" text-anchor="start" fill="#1A3A6B" font-size="13" font-weight="700" font-family="monospace">__delay_ms(500)</text>
+<text x="62" y="87.0" text-anchor="end" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >CPU</text>
+<rect x="95" y="68" width="135.0" height="30" fill="#D64550" fill-opacity="0.22" stroke="#D64550" stroke-width="1"/>
+<rect x="230.0" y="68" width="5" height="30" fill="#3FA96F" stroke="#3FA96F" stroke-width="1"/>
+<rect x="235.0" y="68" width="135.0" height="30" fill="#D64550" fill-opacity="0.22" stroke="#D64550" stroke-width="1"/>
+<rect x="370.0" y="68" width="5" height="30" fill="#3FA96F" stroke="#3FA96F" stroke-width="1"/>
+<rect x="375.0" y="68" width="135.0" height="30" fill="#D64550" fill-opacity="0.22" stroke="#D64550" stroke-width="1"/>
+<rect x="510.0" y="68" width="5" height="30" fill="#3FA96F" stroke="#3FA96F" stroke-width="1"/>
+<rect x="515.0" y="68" width="135.0" height="30" fill="#D64550" fill-opacity="0.22" stroke="#D64550" stroke-width="1"/>
+<rect x="650.0" y="68" width="5" height="30" fill="#3FA96F" stroke="#3FA96F" stroke-width="1"/>
+<text x="375.0" y="87.0" text-anchor="middle" fill="#D64550" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" >CPU blocked (busy wait)</text>
+<line x1="373.0" y1="64" x2="403.0" y2="50" stroke="#3FA96F" stroke-width="1" marker-start="url(#arr)"/>
+<text x="407.0" y="48" text-anchor="start" fill="#3FA96F" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >toggle (a few µs)</text>
+<text x="70" y="150" text-anchor="start" fill="#1A3A6B" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" >Timer + interrupt</text>
+<text x="62" y="181.0" text-anchor="end" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >CPU</text>
+<rect x="95" y="162" width="560" height="30" fill="#3FA96F" fill-opacity="0.20" stroke="#3FA96F" stroke-width="1"/>
+<rect x="232.5" y="162" width="5" height="30" fill="#D64550"/>
+<rect x="372.5" y="162" width="5" height="30" fill="#D64550"/>
+<rect x="512.5" y="162" width="5" height="30" fill="#D64550"/>
+<rect x="652.5" y="162" width="5" height="30" fill="#D64550"/>
+<text x="375.0" y="181.0" text-anchor="middle" fill="#3FA96F" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" >CPU free (main loop)</text>
+<line x1="237.0" y1="158" x2="265.0" y2="144" stroke="#D64550" stroke-width="1" marker-start="url(#arr)"/>
+<text x="269.0" y="140" text-anchor="start" fill="#D64550" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >ISR callback (~µs): LED1_Toggle()</text>
+<text x="62" y="310.0" text-anchor="end" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >TMR1</text>
+<text x="62" y="323.0" text-anchor="end" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >counter</text>
+<line x1="95" y1="260" x2="655" y2="260" stroke="#1A3A6B" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="663" y="264" text-anchor="start" fill="#1A3A6B" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >period</text>
+<text x="87" y="364" text-anchor="end" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >0</text>
+<polyline points="95.0,360 235.0,260 235.0,360 235.0,360 375.0,260 375.0,360 375.0,360 515.0,260 515.0,360 515.0,360 655.0,260 655.0,360" fill="none" stroke="#378ADD" stroke-width="2" stroke-linejoin="round"/>
+<line x1="235.0" y1="254" x2="235.0" y2="200" stroke="#E8607A" stroke-width="1.4" marker-end="url(#arr)"/>
+<line x1="375.0" y1="254" x2="375.0" y2="200" stroke="#E8607A" stroke-width="1.4" marker-end="url(#arr)"/>
+<line x1="515.0" y1="254" x2="515.0" y2="200" stroke="#E8607A" stroke-width="1.4" marker-end="url(#arr)"/>
+<line x1="655.0" y1="254" x2="655.0" y2="200" stroke="#E8607A" stroke-width="1.4" marker-end="url(#arr)"/>
+<text x="243.0" y="288" text-anchor="start" fill="#E8607A" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >overflow → interrupt</text>
+<text x="360.0" y="450" text-anchor="middle" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" font-style="italic">Same 500 ms blink — but with the timer, the CPU stays available.</text>
+</svg>

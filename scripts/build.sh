@@ -127,6 +127,73 @@ build_pdf() {
     fi
 }
 
+
+# Extraire le titre H1 d'un fichier markdown
+get_h1() {
+    grep -m1 '^# ' "$1" | sed 's/^# //'
+}
+
+# BUILD SPLIT : un HTML + un PDF par fichier de content/
+# Usage : build.sh split            -> tous les fichiers
+#         build.sh split 03-gpio    -> un seul fichier (stem sans .md)
+build_split() {
+    local only="$1"
+    [[ "$only" == "--open" ]] && only=""
+    local overrides="$ROOT/assets/css/pdf-overrides.css"
+    [[ -f "$overrides" ]] && cp "$overrides" "$OUTPUT/assets/css/pdf-overrides.css"
+
+    local project_title
+    project_title=$(yaml_get "title")
+
+    for f in $(get_content_files); do
+        local stem title htmlfile pdffile
+        stem=$(basename "$f" .md)
+        [[ -n "$only" && "$stem" != "$only" ]] && continue
+
+        title=$(get_h1 "$f")
+        [[ -z "$title" ]] && title="$stem"
+
+        htmlfile="$OUTPUT/$stem.html"
+        pdffile="$OUTPUT/$stem.pdf"
+
+        echo ""
+        echo "[BUILD] $stem — $title"
+
+        # --shift-heading-level-by=-1 : le H1 du fichier devient le titre du
+        # document (il n'est plus dupliqué dans le corps), les ## deviennent
+        # des sections de niveau 1, etc.
+        pandoc \
+            "$f" \
+            --to html5 \
+            --standalone \
+            --template "$ROOT/templates/html.html" \
+            --toc \
+            --toc-depth=3 \
+            --shift-heading-level-by=-1 \
+            --highlight-style breezedark \
+            --metadata-file "$CONFIG" \
+            --metadata title="$title" \
+            --metadata subtitle="$project_title" \
+            --output "$htmlfile"
+        echo "  [OK] $htmlfile"
+
+        if command -v weasyprint >/dev/null 2>&1; then
+            if [[ -f "$OUTPUT/assets/css/pdf-overrides.css" ]]; then
+                weasyprint "$htmlfile" "$pdffile" \
+                    --stylesheet "$OUTPUT/assets/css/pdf-overrides.css"
+            else
+                weasyprint "$htmlfile" "$pdffile"
+            fi
+            echo "  [OK] $pdffile (weasyprint)"
+        elif command -v wkhtmltopdf >/dev/null 2>&1; then
+            wkhtmltopdf --enable-local-file-access "$htmlfile" "$pdffile"
+            echo "  [OK] $pdffile (wkhtmltopdf)"
+        else
+            echo "  [SKIP] PDF: installez weasyprint ou wkhtmltopdf"
+        fi
+    done
+}
+
 # ============ MAIN ============
 echo "==================================="
 echo " Markdown Template — Build Script  "
@@ -142,6 +209,7 @@ case "$FORMAT" in
     html) OUT=$(build_html) ;;
     pdf)  build_pdf ;;
     all)  OUT=$(build_html); build_pdf ;;
+    split) build_split "${2:-}" ;;
 esac
 
 echo ""

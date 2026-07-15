@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="fr-FR" xml:lang="fr-FR" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="Cadoret Duncan" />
+  <meta name="date" content="Juin 2026" />
+  <title>ADC Project — Reading the Potentiometer, Displaying on the
+OLED  — Rapport d'étude des processus de communication sur un
+PIC33"</title>
+
+  <!-- Fonts (optionnel : remplacer par des polices locales pour offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Thème (variables CSS générées depuis project.yaml) -->
+  <link rel="stylesheet" href="./assets/css/theme.css" />
+  <!-- Base (structure, composants) -->
+  <link rel="stylesheet" href="./assets/css/base.css" />
+
+  
+    <style>html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    background-color: #232629;
+    color: #7a7c7d;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #7a7c7d;  padding-left: 4px; }
+div.sourceCode
+  { color: #cfcfc2; background-color: #232629; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { color: #cfcfc2; } /* Normal */
+code span.al { color: #95da4c; background-color: #4d1f24; font-weight: bold; } /* Alert */
+code span.an { color: #3f8058; } /* Annotation */
+code span.at { color: #2980b9; } /* Attribute */
+code span.bn { color: #f67400; } /* BaseN */
+code span.bu { color: #7f8c8d; } /* BuiltIn */
+code span.cf { color: #fdbc4b; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #3daee9; } /* Char */
+code span.cn { color: #27aeae; font-weight: bold; } /* Constant */
+code span.co { color: #7a7c7d; } /* Comment */
+code span.cv { color: #7f8c8d; } /* CommentVar */
+code span.do { color: #a43340; } /* Documentation */
+code span.dt { color: #2980b9; } /* DataType */
+code span.dv { color: #f67400; } /* DecVal */
+code span.er { color: #da4453; text-decoration: underline; } /* Error */
+code span.ex { color: #0099ff; font-weight: bold; } /* Extension */
+code span.fl { color: #f67400; } /* Float */
+code span.fu { color: #8e44ad; } /* Function */
+code span.im { color: #27ae60; } /* Import */
+code span.in { color: #c45b00; } /* Information */
+code span.kw { color: #cfcfc2; font-weight: bold; } /* Keyword */
+code span.op { color: #cfcfc2; } /* Operator */
+code span.ot { color: #27ae60; } /* Other */
+code span.pp { color: #27ae60; } /* Preprocessor */
+code span.re { color: #2980b9; background-color: #153042; } /* RegionMarker */
+code span.sc { color: #3daee9; } /* SpecialChar */
+code span.ss { color: #da4453; } /* SpecialString */
+code span.st { color: #f44f4f; } /* String */
+code span.va { color: #27aeae; } /* Variable */
+code span.vs { color: #da4453; } /* VerbatimString */
+code span.wa { color: #da4453; } /* Warning */</style>
+  </head>
+
+<body>
+
+
+
+<header class="doc-header">
+  <div class="header-brand">
+    <img src="./assets/images/UMC-EN.png" alt="Votre
+Entreprise" class="header-logo" />
+    <span class="header-company">Votre Entreprise</span>
+  </div>
+  <div class="header-doc-info">
+    <span class="header-title">ADC Project — Reading the Potentiometer,
+Displaying on the OLED</span>
+    <span class="header-meta">v1.0 · Juin 2026</span>
+  </div>
+</header>
+
+<nav id="TOC" role="doc-toc">
+  <strong>Table des matières</strong>
+  <ul>
+  <li><a href="#goals" id="toc-goals">Goals</a></li>
+  <li><a href="#physical-setup" id="toc-physical-setup">Physical
+  setup</a></li>
+  <li><a href="#background-what-is-an-adc"
+  id="toc-background-what-is-an-adc">Background — what is an
+  ADC?</a></li>
+  <li><a href="#part-1-your-mission" id="toc-part-1-your-mission">Part 1
+  — Your mission</a>
+  <ul>
+  <li><a href="#step-1-configure-the-adc-pin-and-module"
+  id="toc-step-1-configure-the-adc-pin-and-module">Step 1 — Configure
+  the ADC pin and module</a></li>
+  <li><a href="#step-2-read-the-potentiometer"
+  id="toc-step-2-read-the-potentiometer">Step 2 — Read the
+  potentiometer</a></li>
+  <li><a href="#step-3-port-the-oled-driver"
+  id="toc-step-3-port-the-oled-driver">Step 3 — Port the OLED
+  driver</a></li>
+  <li><a href="#step-4-the-non-blocking-i2c-trap"
+  id="toc-step-4-the-non-blocking-i2c-trap">Step 4 — The non-blocking
+  I2C trap</a></li>
+  <li><a href="#step-5-putting-it-together"
+  id="toc-step-5-putting-it-together">Step 5 — Putting it
+  together</a></li>
+  </ul></li>
+  <li><a href="#part-2-guided-correction"
+  id="toc-part-2-guided-correction">Part 2 — Guided correction</a>
+  <ul>
+  <li><a href="#step-1-configure-the-adc-pin-and-module-1"
+  id="toc-step-1-configure-the-adc-pin-and-module-1">Step 1 — Configure
+  the ADC pin and module</a></li>
+  <li><a href="#step-2-read-the-potentiometer-1"
+  id="toc-step-2-read-the-potentiometer-1">Step 2 — Read the
+  potentiometer</a></li>
+  <li><a href="#step-3-port-the-oled-driver-1"
+  id="toc-step-3-port-the-oled-driver-1">Step 3 — Port the OLED
+  driver</a></li>
+  <li><a href="#step-4-the-non-blocking-i2c-trap-1"
+  id="toc-step-4-the-non-blocking-i2c-trap-1">Step 4 — The non-blocking
+  I2C trap</a></li>
+  <li><a href="#step-5-putting-it-together-1"
+  id="toc-step-5-putting-it-together-1">Step 5 — Putting it
+  together</a></li>
+  </ul></li>
+  <li><a href="#what-you-learned" id="toc-what-you-learned">What you
+  learned</a></li>
+  <li><a href="#next" id="toc-next">Next</a></li>
+  </ul>
+</nav>
+
+<main>
+<p>In this lab you will read the on-board rotary potentiometer with the
+dsPIC’s analog-to-digital converter (ADC), and display the live value on
+the SSD1306 OLED screen over I2C.</p>
+<h1 id="goals">Goals</h1>
+<p>In this lab you will:</p>
+<ul>
+<li>Configure the ADC to read an analog voltage from the
+<strong>potentiometer</strong></li>
+<li>Convert that reading into a digital value (0–4095)</li>
+<li>Drive the <strong>OLED display</strong> over I2C and show the value,
+updated in real time</li>
+</ul>
+<p>The tools involved are the <strong>POT-METER</strong> (rotary
+potentiometer), the <strong>OLED display</strong> (SSD1306), and
+<strong>LED1</strong> as a simple heartbeat.</p>
+<h1 id="physical-setup">Physical setup</h1>
+<p><img src="../assets/images/Curiosity-mapper.png" /> <em>Figure — Pin
+mapping of the dsPIC33CK64MC105 on the Curiosity Nano Explorer board.
+The potentiometer’s wiper is exposed as <strong>POT-METER</strong> and
+maps to the <strong>ADC7</strong> position, which is physical pin
+<strong>RA0 / AN0</strong>. Place a jumper linking
+<strong>POT-METER</strong> to <strong>ADC7</strong>.</em></p>
+<p>The OLED is permanently wired to the board’s I2C bus, but that bus
+only reaches the microcontroller through the two <strong>I2C
+SDA</strong> and <strong>I2C SCL</strong> jumpers in the COM remapping
+area. Make sure <strong>both</strong> are in place — if either is
+missing, the screen (and every other I2C device on the board) will never
+answer.</p>
+<p><code>[CAPTURE: close-up of the board showing (1) the POT-METER → ADC7 jumper and (2) the two I2C SDA / I2C SCL jumpers in the COM remapping area, all in place]</code></p>
+<h1 id="background-what-is-an-adc">Background — what is an ADC?</h1>
+<p>The microcontroller is digital: it only understands 0s and 1s. The
+potentiometer, on the other hand, outputs a <strong>continuous
+voltage</strong> between 0 V and 3.3 V depending on its position. An
+<strong>Analog-to-Digital Converter</strong> bridges the two worlds: it
+samples that voltage and returns a number proportional to it.</p>
+<p>This dsPIC’s ADC is <strong>12-bit</strong>, so it splits the 0–3.3 V
+range into <code>2^12 = 4096</code> steps. A reading of <code>0</code>
+means ~0 V (potentiometer fully one way), <code>4095</code> means ~3.3 V
+(fully the other way), and <code>2048</code> is roughly the middle. Each
+step therefore represents about <code>3.3 V / 4096 ≈ 0.8 mV</code>.</p>
+<p>[DIAGRAM: “adc-quantization” — Single plot. X axis: time (or
+potentiometer angle). Y axis on the LEFT: voltage 0 → 3.3 V; Y axis on
+the RIGHT: ADC code 0 → 4095. A smooth continuous curve (the analog
+voltage) and, superimposed on it, a staircase following the curve (the
+quantized 12-bit reading). A zoom bubble on one stair step annotated “1
+LSB ≈ 0.8 mV”. Caption: “The ADC turns a continuous voltage into one of
+4096 discrete codes.”]</p>
+<p>[DIAGRAM: “adc-signal-chain” — Horizontal block chain, left to right:
+[Potentiometer (0–3.3 V)] → jumper symbol labelled “POT-METER → ADC7” →
+[Pin RA0 / AN0] → [ADC 12-bit] → value “0..4095” → [sprintf “POT: %4u”]
+→ <span class="citation" data-cites="100">[I2C1 @100 kHz,
+RC8/RC9]</span> → <span class="citation" data-cites="0x3D">[OLED SSD1306
+@0x3D]</span>. Analog part of the chain in one colour, digital part in
+another, with a vertical dashed line “analog | digital” through the ADC
+block. Caption: “The full path from knob to pixels.”]</p>
+<h1 id="part-1-your-mission">Part 1 — Your mission</h1>
+<h2 id="step-1-configure-the-adc-pin-and-module">Step 1 — Configure the
+ADC pin and module</h2>
+<p><strong>Task.</strong> In MCC Melody:</p>
+<ol type="1">
+<li>Configure pin <strong>RA0</strong> as an <strong>analog
+input</strong> named <code>POT</code>.</li>
+<li>Add the <strong>ADC</strong> module, enable channel
+<strong>AN0</strong> with the custom name <code>POT</code>.</li>
+<li>One channel setting is easy to miss and, if forgotten, <em>no
+conversion will ever happen</em> even though everything compiles: find
+it in the channel table and set it correctly. (Hint: how does the ADC
+know <strong>when</strong> to start converting, if you trigger it from
+software?)</li>
+<li>Generate, then open <code>adc1.h</code> and list the three functions
+you will need to power up the ADC, start a conversion, and fetch a
+result.</li>
+</ol>
+<h2 id="step-2-read-the-potentiometer">Step 2 — Read the
+potentiometer</h2>
+<p><strong>Task.</strong> In <code>main.c</code>, write a loop that
+continuously reads the potentiometer into a variable.</p>
+<ol type="1">
+<li>A conversion is not instantaneous: how do you make sure the result
+is ready before reading it? Give two possible approaches, and pick the
+simpler one for now.</li>
+<li>Run it under the debugger and watch the variable while turning the
+knob. What range of values do you observe?</li>
+</ol>
+<h2 id="step-3-port-the-oled-driver">Step 3 — Port the OLED driver</h2>
+<p><strong>Task.</strong> To display the value, reuse Microchip’s
+SSD1306 example driver (<code>ssd1306.c</code>, <code>ssd1306.h</code>,
+<code>font.h</code>) and port it to this project. Add the <strong>I2C1
+(Host, 100 kHz)</strong> module in MCC, then integrate the three
+files.</p>
+<p>Porting raises four classic problems — solve each:</p>
+<ol type="1">
+<li><strong>Link error
+<code>multiple definition of ASCII/MCHP</code></strong> when the project
+builds. What C rule is being violated by <code>font.h</code>, and how do
+you fix it?</li>
+<li><strong>I2C address</strong>: the driver defaults to one of the two
+possible SSD1306 addresses. Which one does <em>this</em> board use, and
+how can you find out?</li>
+<li>The driver uses <code>__delay_ms</code> / <code>__delay_us</code>.
+What must be defined, and where, for these to compile?</li>
+<li>The SSD1306 has a RESET pin. Look at the board schematic: which
+microcontroller pin must drive it?</li>
+</ol>
+<h2 id="step-4-the-non-blocking-i2c-trap">Step 4 — The non-blocking I2C
+trap</h2>
+<p><strong>Task.</strong> With the driver compiled and
+<code>SSD1306_Init()</code> called, the screen may well stay
+<strong>black</strong> — while everything compiles and runs without
+error.</p>
+<ol type="1">
+<li>Read the description of <code>I2C1_Write()</code> in the generated
+<code>i2c1.h</code>. What does its return value actually mean? When does
+the function return?</li>
+<li>The original driver waits <code>__delay_us(100)</code> after each
+write. A 2-byte transfer at 100 kHz takes how long? (Count the bits on
+the bus, including address and ACKs.)</li>
+<li>Deduce what happens to the ~25 commands of
+<code>SSD1306_Init()</code>, and fix <code>SSD1306_SendCommand</code> /
+<code>SSD1306_SendData</code> so that no byte is ever dropped — without
+any blind delay.</li>
+</ol>
+<h2 id="step-5-putting-it-together">Step 5 — Putting it together</h2>
+<p><strong>Task.</strong> Combine everything: read the potentiometer,
+format the value, display it on the OLED, and blink LED1 as a heartbeat,
+refreshing ~10 times per second.</p>
+<ol type="1">
+<li>When the displayed number goes from <code>4095</code> to
+<code>800</code>, stale digits from the previous value can remain on
+screen. Find a formatting trick that avoids it.</li>
+<li>Verify: turning the knob sweeps the display between ~0 and ~4095,
+and LED1 blinks steadily.</li>
+</ol>
+<h1 id="part-2-guided-correction">Part 2 — Guided correction</h1>
+<h2 id="step-1-configure-the-adc-pin-and-module-1">Step 1 — Configure
+the ADC pin and module</h2>
+<p>Open the MCC Melody interface (blue MCC icon).</p>
+<p>First, in the <strong>pin table</strong>, set <strong>RA0</strong> as
+an <strong>analog input</strong> and tick its <em>analog</em> box, then
+rename it <code>POT</code>.</p>
+<p>Next, in <strong>Device Resources</strong>, add the
+<strong>ADC</strong> module. In its configuration, find the channel
+table, enable the <strong>AN0</strong> channel, give it the custom name
+<code>POT</code>, and — this is the step that is easy to miss — set its
+<strong>Trigger Source</strong> to <strong>Common Software
+Trigger</strong>. Without a trigger source, the software trigger fires
+but no channel is subscribed to it, so no conversion ever happens.</p>
+<p><img src="../assets/images/03_ADC/01_adc_configuration.png" />
+<em>Figure — ADC channel table: AN0 enabled, named POT, Trigger Source
+set to Common Software Trigger.</em></p>
+<p>Select <strong>Project Resources</strong> on the left and click
+<strong>Generate</strong>. This produces <code>adc1.h</code> /
+<code>adc1.c</code>, which expose (among others):</p>
+<ul>
+<li><code>ADC1_Enable()</code> — powers up the ADC core</li>
+<li><code>ADC1_SoftwareTriggerEnable()</code> — starts a conversion on
+the common software trigger</li>
+<li><code>ADC1_ConversionResultGet(POT)</code> — returns the latest
+12-bit result for the POT channel</li>
+</ul>
+<h2 id="step-2-read-the-potentiometer-1">Step 2 — Read the
+potentiometer</h2>
+<p>A minimal read loop: trigger a conversion, give it a brief moment to
+complete, then read the result.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/system.h&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/pins.h&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/adc/adc1.h&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#define FCY </span><span class="dv">100000000</span><span class="bu">UL</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;libpic30.h&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="dt">uint16_t</span> adcValue<span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    SYSTEM_Initialize<span class="op">();</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    ADC1_Enable<span class="op">();</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        ADC1_SoftwareTriggerEnable<span class="op">();</span>      <span class="co">// start a conversion</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        __delay_us<span class="op">(</span><span class="dv">50</span><span class="op">);</span>                    <span class="co">// let it finish</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        adcValue <span class="op">=</span> ADC1_ConversionResultGet<span class="op">(</span>POT<span class="op">);</span>   <span class="co">// 0 .. 4095</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<blockquote>
+<p>A cleaner alternative is to poll a “conversion complete” status
+instead of using a fixed delay
+(e.g. <code>while (!ADC1_IsConversionComplete(POT)) { }</code>). Check
+the exact function name and behaviour in your generated
+<code>adc1.h</code> before relying on it. The fixed
+<code>__delay_us</code> above is simpler and perfectly fine at this
+stage.</p>
+</blockquote>
+<p>At this point <code>adcValue</code> holds a live reading between 0
+and 4095, but you have no way to <em>see</em> it outside the debugger.
+That is what the OLED is for.</p>
+<h2 id="step-3-port-the-oled-driver-1">Step 3 — Port the OLED
+driver</h2>
+<p><strong>Copy the three files into the project folder</strong> (next
+to <code>main.c</code>) and add them via <em>Add Existing Item…</em> —
+do not leave them outside the project, or the include paths break. Then
+answer by answer:</p>
+<ol type="1">
+<li><p><strong>One definition rule.</strong> <code>font.h</code> ships
+with the <code>ASCII</code> and <code>MCHP</code> arrays
+<em>defined</em> in the header. A header is included by several
+<code>.c</code> files, so the arrays get defined once per inclusion — a
+<em>multiple definition</em> link error. Move the array
+<strong>definitions</strong> into <code>ssd1306.c</code>, and leave only
+<code>extern</code> <strong>declarations</strong> in
+<code>font.h</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">const</span> <span class="dt">unsigned</span> <span class="dt">char</span> ASCII<span class="op">[][</span><span class="dv">5</span><span class="op">];</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">const</span> <span class="dt">unsigned</span> <span class="dt">char</span> MCHP<span class="op">[</span><span class="dv">1024</span><span class="op">];</span></span></code></pre></div></li>
+<li><p><strong>I2C address.</strong> On this board the OLED answers at
+<strong><code>0x3D</code></strong> (the alternative <code>0x3C</code>
+only applies if pin A0 is tied to GND, which it is not here — the
+schematic tells you). Set:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define SSD1306_I2C_ADDRESS </span><span class="bn">0x3D</span></span></code></pre></div></li>
+<li><p><strong>Delays.</strong> <code>__delay_ms</code> /
+<code>__delay_us</code> require <code>FCY</code> to be defined
+<strong>before</strong> <code>#include &lt;libpic30.h&gt;</code>. Add
+<code>#define FCY 100000000UL</code> at the top.</p></li>
+<li><p><strong>Reset line.</strong> Trick question: the SSD1306 RESET
+pin is handled automatically by an on-board RC network, so there is
+<strong>no</strong> microcontroller pin to drive — you can ignore reset
+entirely in software.</p></li>
+</ol>
+<p>Add the <strong>I2C (I2C1, Host)</strong> module in MCC, set it to
+<strong>100 kHz</strong>, generate, and make sure <code>ssd1306.c</code>
+includes the generated driver header:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/i2c_host/i2c1.h&quot;</span></span></code></pre></div>
+<p><code>[CAPTURE: MCC I2C1 configuration window — Host mode, 100 kHz, on RC8/RC9]</code></p>
+<h2 id="step-4-the-non-blocking-i2c-trap-1">Step 4 — The non-blocking
+I2C trap</h2>
+<p>This is the subtle part, and the one most likely to leave you with a
+<strong>blank screen even though everything compiles</strong>.</p>
+<p>The MCC <code>I2C1_Write()</code> function is <strong>non-blocking
+and interrupt-driven</strong>: it <em>starts</em> a transfer and returns
+immediately. Its <code>true</code>/<code>false</code> return only means
+“request accepted”, not “transfer finished”. The original driver simply
+waits a fixed <code>__delay_us(100)</code> after each write — but a
+2-byte transfer at 100 kHz takes about <strong>280 µs</strong> (start +
+address + 2 data bytes + ACKs), far more than 100 µs. So the next
+command is fired while the previous one is still on the bus,
+<code>I2C1_Write()</code> sees the bus busy, returns <code>false</code>,
+and <strong>the byte is silently dropped</strong>. Across the ~25
+commands of <code>SSD1306_Init()</code>, almost all are lost, the
+display is never initialised, and it stays black — without ever
+blocking.</p>
+<p>The fix is to wait for the <strong>real</strong> end of each transfer
+using <code>I2C1_IsBusy()</code> instead of a blind delay. In
+<code>ssd1306.c</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Send an I2C command byte</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> SSD1306_SendCommand<span class="op">(</span><span class="dt">uint8_t</span> command<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> cmd<span class="op">[]</span> <span class="op">=</span> <span class="op">{</span>SSD1306_COMMAND<span class="op">,</span> command<span class="op">};</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>I2C1_IsBusy<span class="op">())</span> <span class="op">{</span> <span class="op">}</span>                        <span class="co">// bus free?</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    I2C1_Write<span class="op">(</span>SSD1306_I2C_ADDRESS<span class="op">,</span> cmd<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span>cmd<span class="op">));</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>I2C1_IsBusy<span class="op">())</span> <span class="op">{</span> <span class="op">}</span>                        <span class="co">// wait for completion</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Send an I2C data byte</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> SSD1306_SendData<span class="op">(</span><span class="dt">uint8_t</span> data<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> d<span class="op">[]</span> <span class="op">=</span> <span class="op">{</span>SSD1306_DATA_CONTINUE<span class="op">,</span> data<span class="op">};</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>I2C1_IsBusy<span class="op">())</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    I2C1_Write<span class="op">(</span>SSD1306_I2C_ADDRESS<span class="op">,</span> d<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span>d<span class="op">));</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>I2C1_IsBusy<span class="op">())</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>I2C1_IsBusy()</code> waits exactly as long as the transfer
+needs — no more, no less — so no byte is ever dropped.</p>
+<p>[DIAGRAM: “i2c-nonblocking-trap” — Two timelines. TOP, “Original
+driver (broken)”: a bus-activity bar showing “transfer #1 (≈280 µs)” as
+a long block; above it, an arrow “I2C1_Write #2” fired at t = 100 µs
+(after the blind delay), landing INSIDE transfer #1, with a red cross
+and the label “bus busy → returns false → byte dropped”. BOTTOM, “Fixed
+with IsBusy()”: transfer #1 block, then a short hatched zone labelled
+“while(I2C1_IsBusy())”, then “I2C1_Write #2” starting exactly at the
+end, green check mark. Caption: “A blind 100 µs delay is shorter than
+the 280 µs transfer — wait on the hardware, not on a guess.”]</p>
+<h2 id="step-5-putting-it-together-1">Step 5 — Putting it together</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/system.h&quot;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/pins.h&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/adc/adc1.h&quot;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;ssd1306.h&quot;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#define FCY </span><span class="dv">100000000</span><span class="bu">UL</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;libpic30.h&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="dt">uint16_t</span> adcValue<span class="op">;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> buffer<span class="op">[</span><span class="dv">16</span><span class="op">];</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    SYSTEM_Initialize<span class="op">();</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    ADC1_Enable<span class="op">();</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    SSD1306_Init<span class="op">();</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    SSD1306_Clear<span class="op">();</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>        ADC1_SoftwareTriggerEnable<span class="op">();</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>        __delay_us<span class="op">(</span><span class="dv">50</span><span class="op">);</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        adcValue <span class="op">=</span> ADC1_ConversionResultGet<span class="op">(</span>POT<span class="op">);</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>        <span class="co">// %4u + trailing spaces: pads the number and erases the previous digits</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>        sprintf<span class="op">(</span>buffer<span class="op">,</span> <span class="st">&quot;POT: </span><span class="sc">%4u</span><span class="st">   &quot;</span><span class="op">,</span> adcValue<span class="op">);</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>        SSD1306_SelectPage<span class="op">(</span><span class="dv">0</span><span class="op">);</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>        SSD1306_WriteString<span class="op">(</span>buffer<span class="op">);</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>        LED1_Toggle<span class="op">();</span>          <span class="co">// heartbeat: confirms the loop is running</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>        __delay_ms<span class="op">(</span><span class="dv">100</span><span class="op">);</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The formatting trick is <code>%4u</code> plus trailing spaces: the
+field is always the same width, so shorter numbers overwrite all the
+digits of longer ones.</p>
+<p>Turn the potentiometer: the number on the OLED should sweep between
+roughly <code>0</code> and <code>4095</code>, and LED1 should blink
+steadily.</p>
+<p><code>[CAPTURE: OLED showing "POT: nnnn", with the potentiometer at a mid position]</code>
+<code>[CAPTURE: two photos side by side — potentiometer turned fully one way (~0) and fully the other (~4095) — to show the value tracking]</code></p>
+<h1 id="what-you-learned">What you learned</h1>
+<ul>
+<li>An <strong>ADC</strong> turns a continuous voltage into a discrete
+number; this 12-bit ADC gives 0–4095 over 0–3.3 V.</li>
+<li>A software-triggered ADC channel needs an explicit <strong>Trigger
+Source</strong> (Common Software Trigger), or it never converts.</li>
+<li>MCC’s <code>I2C1_Write()</code> is <strong>non-blocking</strong> —
+you must wait on <code>I2C1_IsBusy()</code> between transfers, otherwise
+commands are dropped and the display stays blank.</li>
+<li>Reusing a third-party driver means respecting C basics:
+<strong>definitions in a <code>.c</code>, <code>extern</code>
+declarations in the <code>.h</code></strong>, and the files physically
+inside the project.</li>
+</ul>
+<h1 id="next">Next</h1>
+<p><strong>I2C sensor</strong> — the OLED was an I2C <em>output</em>;
+next you will read a real I2C <em>input</em>: the VCNL4200 proximity
+sensor.</p>
+<blockquote>
+<p><em>Deferred:</em> <strong>ADC + PWM</strong> — reusing this ADC
+reading to drive a PWM duty cycle (LED brightness) — closing the loop
+between an analog input and an analog-like output.</p>
+</blockquote>
+</main>
+
+<footer class="doc-footer">
+  <div class="footer-left">
+    <span>Votre Entreprise</span>
+    <a href="https://votresite.com">https://votresite.com</a>
+  </div>
+  <div class="footer-center">
+        <span>Confidentiel — Document préparé pour Entreprise
+Destinataire</span>
+      </div>
+  <div class="footer-right">
+    <span>Juin 2026</span>
+  </div>
+</footer>
+
+</body>
+</html>

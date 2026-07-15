@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="fr-FR" xml:lang="fr-FR" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="Cadoret Duncan" />
+  <meta name="date" content="Juin 2026" />
+  <title>Timer Project — Non-blocking Timing &amp; Debouncing  — Rapport
+d'étude des processus de communication sur un PIC33"</title>
+
+  <!-- Fonts (optionnel : remplacer par des polices locales pour offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Thème (variables CSS générées depuis project.yaml) -->
+  <link rel="stylesheet" href="./assets/css/theme.css" />
+  <!-- Base (structure, composants) -->
+  <link rel="stylesheet" href="./assets/css/base.css" />
+
+  
+    <style>html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    background-color: #232629;
+    color: #7a7c7d;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #7a7c7d;  padding-left: 4px; }
+div.sourceCode
+  { color: #cfcfc2; background-color: #232629; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { color: #cfcfc2; } /* Normal */
+code span.al { color: #95da4c; background-color: #4d1f24; font-weight: bold; } /* Alert */
+code span.an { color: #3f8058; } /* Annotation */
+code span.at { color: #2980b9; } /* Attribute */
+code span.bn { color: #f67400; } /* BaseN */
+code span.bu { color: #7f8c8d; } /* BuiltIn */
+code span.cf { color: #fdbc4b; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #3daee9; } /* Char */
+code span.cn { color: #27aeae; font-weight: bold; } /* Constant */
+code span.co { color: #7a7c7d; } /* Comment */
+code span.cv { color: #7f8c8d; } /* CommentVar */
+code span.do { color: #a43340; } /* Documentation */
+code span.dt { color: #2980b9; } /* DataType */
+code span.dv { color: #f67400; } /* DecVal */
+code span.er { color: #da4453; text-decoration: underline; } /* Error */
+code span.ex { color: #0099ff; font-weight: bold; } /* Extension */
+code span.fl { color: #f67400; } /* Float */
+code span.fu { color: #8e44ad; } /* Function */
+code span.im { color: #27ae60; } /* Import */
+code span.in { color: #c45b00; } /* Information */
+code span.kw { color: #cfcfc2; font-weight: bold; } /* Keyword */
+code span.op { color: #cfcfc2; } /* Operator */
+code span.ot { color: #27ae60; } /* Other */
+code span.pp { color: #27ae60; } /* Preprocessor */
+code span.re { color: #2980b9; background-color: #153042; } /* RegionMarker */
+code span.sc { color: #3daee9; } /* SpecialChar */
+code span.ss { color: #da4453; } /* SpecialString */
+code span.st { color: #f44f4f; } /* String */
+code span.va { color: #27aeae; } /* Variable */
+code span.vs { color: #da4453; } /* VerbatimString */
+code span.wa { color: #da4453; } /* Warning */</style>
+  </head>
+
+<body>
+
+
+
+<header class="doc-header">
+  <div class="header-brand">
+    <img src="./assets/images/UMC-EN.png" alt="Votre
+Entreprise" class="header-logo" />
+    <span class="header-company">Votre Entreprise</span>
+  </div>
+  <div class="header-doc-info">
+    <span class="header-title">Timer Project — Non-blocking Timing &amp;
+Debouncing</span>
+    <span class="header-meta">v1.0 · Juin 2026</span>
+  </div>
+</header>
+
+<nav id="TOC" role="doc-toc">
+  <strong>Table des matières</strong>
+  <ul>
+  <li><a href="#goals" id="toc-goals">Goals</a></li>
+  <li><a href="#physical-setup" id="toc-physical-setup">Physical
+  setup</a></li>
+  <li><a href="#background-why-a-timer"
+  id="toc-background-why-a-timer">Background — why a timer?</a></li>
+  <li><a href="#part-1-your-mission" id="toc-part-1-your-mission">Part 1
+  — Your mission</a>
+  <ul>
+  <li><a href="#step-1-add-and-configure-the-timer"
+  id="toc-step-1-add-and-configure-the-timer">Step 1 — Add and configure
+  the timer</a></li>
+  <li><a href="#step-2-non-blocking-blink"
+  id="toc-step-2-non-blocking-blink">Step 2 — Non-blocking
+  blink</a></li>
+  <li><a href="#step-3-debounce-sw2-with-the-timer"
+  id="toc-step-3-debounce-sw2-with-the-timer">Step 3 — Debounce SW2 with
+  the timer</a></li>
+  </ul></li>
+  <li><a href="#part-2-guided-correction"
+  id="toc-part-2-guided-correction">Part 2 — Guided correction</a>
+  <ul>
+  <li><a href="#step-1-add-and-configure-the-timer-1"
+  id="toc-step-1-add-and-configure-the-timer-1">Step 1 — Add and
+  configure the timer</a></li>
+  <li><a href="#step-2-non-blocking-blink-1"
+  id="toc-step-2-non-blocking-blink-1">Step 2 — Non-blocking
+  blink</a></li>
+  <li><a href="#step-3-debounce-sw2-with-the-timer-1"
+  id="toc-step-3-debounce-sw2-with-the-timer-1">Step 3 — Debounce SW2
+  with the timer</a></li>
+  </ul></li>
+  <li><a href="#what-you-learned" id="toc-what-you-learned">What you
+  learned</a></li>
+  <li><a href="#next" id="toc-next">Next</a></li>
+  </ul>
+</nav>
+
+<main>
+<p>In this lab you will use a hardware timer to generate precise,
+<strong>non-blocking</strong> timing. You will then use that same timer
+to fix the button-<strong>debouncing</strong> problem left open at the
+end of the GPIO lab.</p>
+<h1 id="goals">Goals</h1>
+<p>In this lab you will:</p>
+<ul>
+<li>Blink LED1 <strong>without blocking</strong> the CPU (no more
+<code>__delay_ms</code>)</li>
+<li>Configure a timer to raise an <strong>interrupt</strong> at a fixed
+rate, and run your code from a <strong>callback</strong></li>
+<li>Use that fixed-rate sampling to <strong>debounce</strong> SW2 and
+toggle the LED cleanly — exactly one toggle per press</li>
+</ul>
+<p>The tools involved are <strong>LED1</strong> and
+<strong>SW2</strong>, same as the GPIO lab.</p>
+<h1 id="physical-setup">Physical setup</h1>
+<p>No new wiring. Keep the same jumpers as in the GPIO lab: <strong>LED1
+→ IO11</strong> and <strong>SW2 → IO20</strong>.</p>
+<p><code>[CAPTURE: board with the LED1 and SW2 jumpers in place]</code></p>
+<h1 id="background-why-a-timer">Background — why a timer?</h1>
+<p>In the GPIO lab you used <code>__delay_ms(500)</code>. That macro is
+a <strong>busy wait</strong>: the CPU spins in a loop doing nothing
+useful for the whole half-second, so it cannot react to anything else
+during that time.</p>
+<p>A hardware timer is a counter that runs <strong>in parallel</strong>
+with your program. It increments on its own from the system clock and,
+when it reaches a value you choose (its <em>period</em>), it raises a
+flag — and optionally triggers an <strong>interrupt</strong>. The CPU
+stays free; it only stops briefly to run a short <em>callback</em> when
+the timer fires, then carries on.</p>
+<p>On this board the instruction clock is <code>FCY = 100 MHz</code>
+(<code>FOSC / 2</code>). The timer counts at a rate derived from
+<code>FCY</code>, and MCC computes the right reload value for the period
+you ask for — you do not have to do the register math by hand.</p>
+<p>[DIAGRAM: “blocking-vs-timer” — Two horizontal timelines, one above
+the other, same time axis (0 to ~2 s with 500 ms graduations). TOP,
+titled “__delay_ms(500)“: a CPU activity bar almost entirely filled in
+red labelled”CPU blocked (busy wait)“, interrupted every 500 ms by a
+tiny green sliver labelled”toggle”. BOTTOM, titled “Timer + interrupt”:
+the CPU bar is almost entirely green labelled “CPU free (main loop)”,
+with tiny red ticks every 500 ms labelled “ISR callback (µs)”. Below the
+bottom bar, a sawtooth line representing the timer counter rising to
+“period” then resetting, with an arrow from each sawtooth peak up to the
+corresponding ISR tick. Caption: “Same blink, but the CPU is
+available.”]</p>
+<h1 id="part-1-your-mission">Part 1 — Your mission</h1>
+<h2 id="step-1-add-and-configure-the-timer">Step 1 — Add and configure
+the timer</h2>
+<p><strong>Task.</strong> In MCC Melody, add a timer (TMR1) that fires
+every <strong>500 ms</strong> with its <strong>interrupt
+enabled</strong>, then generate.</p>
+<ol type="1">
+<li>Which clock source do you select, and why does the requested period
+of 500 ms not require any manual register calculation?</li>
+<li>After generating, open <code>tmr1.h</code> and list the functions
+you will need: initialisation, start, and <em>callback
+registration</em>. Write down the exact name of the
+callback-registration function in <strong>your</strong> generated
+driver.</li>
+</ol>
+<h2 id="step-2-non-blocking-blink">Step 2 — Non-blocking blink</h2>
+<p><strong>Task.</strong> Reproduce the 500 ms blink from the GPIO lab
+<strong>without any <code>__delay_ms</code></strong> in the main
+loop.</p>
+<ol type="1">
+<li>Write a short function that toggles LED1, and register it as the
+timer callback.</li>
+<li>Start the timer. What does your <code>while(1)</code> loop contain
+now?</li>
+<li>Explain in one sentence what has fundamentally changed compared with
+the GPIO version.</li>
+</ol>
+<h2 id="step-3-debounce-sw2-with-the-timer">Step 3 — Debounce SW2 with
+the timer</h2>
+<p><strong>Task.</strong> Fix the toggle problem from the GPIO lab: one
+physical press of SW2 = exactly <strong>one</strong> LED toggle, no
+matter how long the press or how much the contact bounces.</p>
+<p>The strategy: <strong>sample the button at a fixed, slow
+rate</strong> (change the timer period to <strong>5 ms</strong>) and
+only act when the level has been <strong>stable for several consecutive
+samples</strong> — and only on the <strong>transition</strong> from
+released to pressed.</p>
+<ol type="1">
+<li>Change the timer period to 5 ms and regenerate.</li>
+<li>In the callback, implement a small state machine with: the last
+<em>stable</em> state, a stability counter, and a constant
+<code>STABLE_SAMPLES</code> (e.g. 4 samples = 20 ms).</li>
+<li>Why do you toggle only on the released→pressed
+<strong>transition</strong>, rather than whenever the stable state is
+“pressed”? What would happen if you held the button down otherwise?</li>
+</ol>
+<h1 id="part-2-guided-correction">Part 2 — Guided correction</h1>
+<h2 id="step-1-add-and-configure-the-timer-1">Step 1 — Add and configure
+the timer</h2>
+<p>Open the MCC Melody interface (blue MCC icon). In <strong>Device
+Resources</strong>, add a <strong>Timer (TMR1)</strong>. In its
+configuration panel set:</p>
+<ul>
+<li><strong>Clock source</strong>: <code>FOSC/2</code>
+(i.e. <code>FCY</code>)</li>
+<li><strong>Requested Period</strong>: <code>500 ms</code> — you will
+lower this later for debouncing</li>
+<li>Tick <strong>Enable Timer Interrupt</strong></li>
+</ul>
+<p>Then select <strong>Project Resources</strong> on the left and click
+<strong>Generate</strong>. MCC computes the prescaler and reload value
+for you from the requested period — that is why no register math is
+needed.</p>
+<p><code>[CAPTURE: MCC Melody TMR1 configuration window — clock source FOSC/2, Requested Period 500 ms, interrupt enabled]</code></p>
+<p>This generates <code>tmr1.h</code> and <code>tmr1.c</code>, which
+expose (among others):</p>
+<ul>
+<li><code>TMR1_Initialize()</code> — applies the configuration (already
+called by <code>SYSTEM_Initialize()</code>)</li>
+<li><code>TMR1_Start()</code> / <code>TMR1_Stop()</code> — run / halt
+the timer</li>
+<li>a <strong>callback registration</strong> function, typically
+<code>TMR1_TimeoutCallbackRegister(void (*handler)(void))</code></li>
+</ul>
+<blockquote>
+<p>Check the exact name of the callback function in your generated
+<code>tmr1.h</code> — depending on the driver version it may differ
+slightly (e.g. <code>TMR1_TimeoutCallbackRegister</code> vs
+<code>TMR1_OverflowCallbackRegister</code>). Use the one that is
+actually declared.</p>
+</blockquote>
+<p><code>[CAPTURE: tmr1.h open in the editor, with the callback-registration prototype highlighted]</code></p>
+<h2 id="step-2-non-blocking-blink-1">Step 2 — Non-blocking blink</h2>
+<p>Register a callback that toggles LED1, and let the timer call it on
+its own every period. The <code>while(1)</code> loop is now empty — and
+that is the point:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/system.h&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/pins.h&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Called automatically every timer period (here: 500 ms), from the timer interrupt</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span> Timer1_Tick<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    LED1_Toggle<span class="op">();</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    SYSTEM_Initialize<span class="op">();</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    TMR1_TimeoutCallbackRegister<span class="op">(&amp;</span>Timer1_Tick<span class="op">);</span>   <span class="co">// check the exact name in tmr1.h</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    TMR1_Start<span class="op">();</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        <span class="co">// The CPU is free here for other tasks — no blocking delay.</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The LED blinks every 500 ms, but the main loop is completely
+available. Compare this with the GPIO version where
+<code>__delay_ms</code> froze everything: that difference is the whole
+point of using a timer.</p>
+<p><code>[CAPTURE: LED1 blinking]</code></p>
+<h2 id="step-3-debounce-sw2-with-the-timer-1">Step 3 — Debounce SW2 with
+the timer</h2>
+<p>Change the timer <strong>Requested Period</strong> to <strong>5
+ms</strong> and regenerate, then use a small state machine in the
+callback:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/system.h&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/pins.h&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdbool.h&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdint.h&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#define STABLE_SAMPLES  </span><span class="dv">4</span><span class="pp">      </span><span class="co">// 4 x 5 ms = 20 ms of a stable level required</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">// Called every 5 ms</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span> Timer1_Tick<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">static</span> <span class="dt">uint8_t</span> counter     <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">static</span> <span class="dt">bool</span>    stableState <span class="op">=</span> <span class="kw">true</span><span class="op">;</span>          <span class="co">// true = released (weak pull-up keeps it HIGH)</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> reading <span class="op">=</span> <span class="op">(</span>SW2_GetValue<span class="op">()</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">);</span>       <span class="co">// true = released, false = pressed (active low)</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>reading <span class="op">!=</span> stableState<span class="op">)</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        counter<span class="op">++;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>counter <span class="op">&gt;=</span> STABLE_SAMPLES<span class="op">)</span>          <span class="co">// the new level has held long enough</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>            stableState <span class="op">=</span> reading<span class="op">;</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>            counter      <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="op">(</span>stableState <span class="op">==</span> <span class="kw">false</span><span class="op">)</span>           <span class="co">// newly, stably PRESSED -&gt; act once</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>            <span class="op">{</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                LED1_Toggle<span class="op">();</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>        counter <span class="op">=</span> <span class="dv">0</span><span class="op">;</span>                            <span class="co">// bounce/noise: reset the stability counter</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    SYSTEM_Initialize<span class="op">();</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    TMR1_TimeoutCallbackRegister<span class="op">(&amp;</span>Timer1_Tick<span class="op">);</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    TMR1_Start<span class="op">();</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>        <span class="co">// free</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Toggling only on the released→pressed <strong>transition</strong> is
+what guarantees <em>one action per press</em>: the state machine changes
+<code>stableState</code> once when the press is confirmed, and cannot
+fire again until the button has been stably released. If you toggled
+whenever the stable state was “pressed”, holding the button would toggle
+the LED every 20 ms — the flicker would be back, just slower.</p>
+<p>Now one physical press = exactly <strong>one</strong> toggle, no
+matter how the contact bounces or how long you hold the button. Try
+holding it down: the LED no longer flickers.</p>
+<p>[DIAGRAM: “debounce-sampling” — Chronogram. Top line: the raw SW2
+signal, idle HIGH, then a falling edge with 3–4 rapid bounces (narrow
+spikes), then stable LOW for a while, then a rising edge with bounces,
+back to HIGH. Below the signal: regularly spaced sample arrows every 5
+ms pointing up at the signal. Under each arrow, the sampled value (1 or
+0). Below that, the stability counter value at each sample (0,1,2,3,4…),
+resetting to 0 whenever the reading flips during the bounces. A
+star/marker labelled “stableState ← pressed, TOGGLE” at the first sample
+where the counter reaches 4. During the bounce zone, annotate “bounces
+rejected: counter reset”. Caption: “Fixed-rate sampling + stability
+count = one clean event per press.”]</p>
+<p><code>[CAPTURE: clean single toggle per press]</code></p>
+<h1 id="what-you-learned">What you learned</h1>
+<ul>
+<li>A hardware timer gives <strong>deterministic, parallel</strong>
+timing without blocking the CPU.</li>
+<li><strong>Interrupts + callbacks</strong> let the MCU react on a fixed
+schedule instead of polling in a tight loop.</li>
+<li><strong>Fixed-rate sampling with a stability count</strong> is the
+standard, reliable way to debounce a mechanical input.</li>
+<li>Acting on the <strong>transition</strong> of the stable state (not
+the state itself) gives exactly one event per press.</li>
+</ul>
+<h1 id="next">Next</h1>
+<p><strong>ADC</strong> — reading an analog voltage (the on-board
+potentiometer) and displaying it live on the OLED screen.</p>
+<blockquote>
+<p><em>Deferred:</em> <strong>PWM</strong> — generating an analog-like
+level (LED brightness) from a digital pin — is postponed until it can be
+validated visually or with the oscilloscope.</p>
+</blockquote>
+</main>
+
+<footer class="doc-footer">
+  <div class="footer-left">
+    <span>Votre Entreprise</span>
+    <a href="https://votresite.com">https://votresite.com</a>
+  </div>
+  <div class="footer-center">
+        <span>Confidentiel — Document préparé pour Entreprise
+Destinataire</span>
+      </div>
+  <div class="footer-right">
+    <span>Juin 2026</span>
+  </div>
+</footer>
+
+</body>
+</html>

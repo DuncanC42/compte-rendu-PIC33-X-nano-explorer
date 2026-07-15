@@ -1,0 +1,59 @@
+<svg viewBox="0 0 780 400" xmlns="http://www.w3.org/2000/svg" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+    <line x1="0" y1="0" x2="0" y2="5" stroke="#6B7280" stroke-width="1" stroke-opacity="0.4"/>
+  </pattern>
+</defs>
+<rect x="0" y="0" width="780" height="400" fill="white"/>
+<text x="60" y="56" text-anchor="start" fill="#D64550" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" >Naive: I2C1_Write() then I2C1_Read()</text>
+<text x="720" y="56" text-anchor="end" fill="#D64550" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" >✗ returns zeros</text>
+<rect x="60" y="70" width="50" height="34" rx="4" fill="#F0F4FA" stroke="#1A3A6B" stroke-width="1.2"/>
+<text x="85.0" y="91.0" text-anchor="middle" fill="#1A3A6B" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >START</text>
+<rect x="110" y="70" width="92" height="34" rx="4" fill="#EAF3FC" stroke="#378ADD" stroke-width="1.2"/>
+<text x="156.0" y="91.0" text-anchor="middle" fill="#378ADD" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >0x51 + W</text>
+<rect x="202" y="70" width="82" height="34" rx="4" fill="#EAF7F0" stroke="#3FA96F" stroke-width="1.2"/>
+<text x="243.0" y="91.0" text-anchor="middle" fill="#3FA96F" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >cmd 0x08</text>
+<rect x="284" y="70" width="50" height="34" rx="4" fill="#F0F4FA" stroke="#1A3A6B" stroke-width="1.2"/>
+<text x="309.0" y="91.0" text-anchor="middle" fill="#1A3A6B" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >STOP</text>
+<text x="379" y="91" text-anchor="middle" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="400" font-style="italic">…bus released…</text>
+<rect x="424" y="70" width="50" height="34" rx="4" fill="#F0F4FA" stroke="#1A3A6B" stroke-width="1.2"/>
+<text x="449.0" y="91.0" text-anchor="middle" fill="#1A3A6B" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >START</text>
+<rect x="474" y="70" width="92" height="34" rx="4" fill="#EAF3FC" stroke="#378ADD" stroke-width="1.2"/>
+<text x="520.0" y="91.0" text-anchor="middle" fill="#378ADD" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >0x51 + R</text>
+<rect x="566" y="70" width="72" height="34" rx="4" fill="#EAF7F0" stroke="#3FA96F" stroke-width="1.2"/>
+<text x="602.0" y="91.0" text-anchor="middle" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >0x00 ?</text>
+<rect x="638" y="70" width="72" height="34" rx="4" fill="#EAF7F0" stroke="#3FA96F" stroke-width="1.2"/>
+<text x="674.0" y="91.0" text-anchor="middle" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >0x00 ?</text>
+<rect x="710" y="70" width="50" height="34" rx="4" fill="#F0F4FA" stroke="#1A3A6B" stroke-width="1.2"/>
+<text x="735.0" y="91.0" text-anchor="middle" fill="#1A3A6B" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >STOP</text>
+<line x1="309" y1="110" x2="309" y2="138" stroke="#D64550" stroke-width="1.3" marker-start="url(#arr)"/>
+<text x="309" y="154" text-anchor="start" fill="#D64550" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >Stop → the sensor forgets which register was requested,</text>
+<text x="309" y="169" text-anchor="start" fill="#D64550" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >so the following read returns zeros.</text>
+<text x="60" y="226" text-anchor="start" fill="#3FA96F" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" >I2C1_WriteRead(): one transaction</text>
+<text x="720" y="226" text-anchor="end" fill="#3FA96F" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" >✓ correct</text>
+<rect x="60" y="240" width="50" height="34" rx="4" fill="#F0F4FA" stroke="#1A3A6B" stroke-width="1.2"/>
+<text x="85.0" y="261.0" text-anchor="middle" fill="#1A3A6B" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >START</text>
+<rect x="110" y="240" width="92" height="34" rx="4" fill="#EAF3FC" stroke="#378ADD" stroke-width="1.2"/>
+<text x="156.0" y="261.0" text-anchor="middle" fill="#378ADD" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >0x51 + W</text>
+<rect x="202" y="240" width="82" height="34" rx="4" fill="#EAF7F0" stroke="#3FA96F" stroke-width="1.2"/>
+<text x="243.0" y="261.0" text-anchor="middle" fill="#3FA96F" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >cmd 0x08</text>
+<rect x="284" y="240" width="56" height="34" rx="4" fill="#FDEBEE" stroke="#E8607A" stroke-width="1.2"/>
+<text x="312.0" y="256.0" text-anchor="middle" fill="#E8607A" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >Sr</text>
+<text x="312.0" y="269.0" text-anchor="middle" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="9" font-weight="400" >rep. start</text>
+<rect x="340" y="240" width="92" height="34" rx="4" fill="#EAF3FC" stroke="#378ADD" stroke-width="1.2"/>
+<text x="386.0" y="261.0" text-anchor="middle" fill="#378ADD" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >0x51 + R</text>
+<rect x="432" y="240" width="78" height="34" rx="4" fill="#EAF7F0" stroke="#3FA96F" stroke-width="1.2"/>
+<text x="471.0" y="261.0" text-anchor="middle" fill="#3FA96F" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >data LSB</text>
+<rect x="510" y="240" width="78" height="34" rx="4" fill="#EAF7F0" stroke="#3FA96F" stroke-width="1.2"/>
+<text x="549.0" y="261.0" text-anchor="middle" fill="#3FA96F" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >data MSB</text>
+<rect x="588" y="240" width="50" height="34" rx="4" fill="#F0F4FA" stroke="#1A3A6B" stroke-width="1.2"/>
+<text x="613.0" y="261.0" text-anchor="middle" fill="#1A3A6B" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >STOP</text>
+<line x1="312" y1="234" x2="312" y2="210" stroke="#E8607A" stroke-width="1.3" marker-start="url(#arr)"/>
+<text x="318" y="206" text-anchor="start" fill="#E8607A" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" >repeated start — the bus is never released</text>
+<path d="M 432 284 v 7 h 156 v -7" fill="none" stroke="#1A3A6B" stroke-width="1.2"/>
+<text x="510.0" y="306" text-anchor="middle" fill="#1A3A6B" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" >16-bit register value, LSB first</text>
+<text x="390.0" y="378" text-anchor="middle" fill="#6B7280" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" font-style="italic">One transaction, no Stop in the middle: that is exactly what I2C1_WriteRead() does.</text>
+</svg>

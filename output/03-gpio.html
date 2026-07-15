@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="fr-FR" xml:lang="fr-FR" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="Cadoret Duncan" />
+  <meta name="date" content="Juin 2026" />
+  <title>GPIO Project — Digital Inputs &amp; Outputs  — Rapport d'étude
+des processus de communication sur un PIC33"</title>
+
+  <!-- Fonts (optionnel : remplacer par des polices locales pour offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Thème (variables CSS générées depuis project.yaml) -->
+  <link rel="stylesheet" href="./assets/css/theme.css" />
+  <!-- Base (structure, composants) -->
+  <link rel="stylesheet" href="./assets/css/base.css" />
+
+  
+    <style>html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    background-color: #232629;
+    color: #7a7c7d;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #7a7c7d;  padding-left: 4px; }
+div.sourceCode
+  { color: #cfcfc2; background-color: #232629; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { color: #cfcfc2; } /* Normal */
+code span.al { color: #95da4c; background-color: #4d1f24; font-weight: bold; } /* Alert */
+code span.an { color: #3f8058; } /* Annotation */
+code span.at { color: #2980b9; } /* Attribute */
+code span.bn { color: #f67400; } /* BaseN */
+code span.bu { color: #7f8c8d; } /* BuiltIn */
+code span.cf { color: #fdbc4b; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #3daee9; } /* Char */
+code span.cn { color: #27aeae; font-weight: bold; } /* Constant */
+code span.co { color: #7a7c7d; } /* Comment */
+code span.cv { color: #7f8c8d; } /* CommentVar */
+code span.do { color: #a43340; } /* Documentation */
+code span.dt { color: #2980b9; } /* DataType */
+code span.dv { color: #f67400; } /* DecVal */
+code span.er { color: #da4453; text-decoration: underline; } /* Error */
+code span.ex { color: #0099ff; font-weight: bold; } /* Extension */
+code span.fl { color: #f67400; } /* Float */
+code span.fu { color: #8e44ad; } /* Function */
+code span.im { color: #27ae60; } /* Import */
+code span.in { color: #c45b00; } /* Information */
+code span.kw { color: #cfcfc2; font-weight: bold; } /* Keyword */
+code span.op { color: #cfcfc2; } /* Operator */
+code span.ot { color: #27ae60; } /* Other */
+code span.pp { color: #27ae60; } /* Preprocessor */
+code span.re { color: #2980b9; background-color: #153042; } /* RegionMarker */
+code span.sc { color: #3daee9; } /* SpecialChar */
+code span.ss { color: #da4453; } /* SpecialString */
+code span.st { color: #f44f4f; } /* String */
+code span.va { color: #27aeae; } /* Variable */
+code span.vs { color: #da4453; } /* VerbatimString */
+code span.wa { color: #da4453; } /* Warning */</style>
+  </head>
+
+<body>
+
+
+
+<header class="doc-header">
+  <div class="header-brand">
+    <img src="./assets/images/UMC-EN.png" alt="Votre
+Entreprise" class="header-logo" />
+    <span class="header-company">Votre Entreprise</span>
+  </div>
+  <div class="header-doc-info">
+    <span class="header-title">GPIO Project — Digital Inputs &amp;
+Outputs</span>
+    <span class="header-meta">v1.0 · Juin 2026</span>
+  </div>
+</header>
+
+<nav id="TOC" role="doc-toc">
+  <strong>Table des matières</strong>
+  <ul>
+  <li><a href="#goals" id="toc-goals">Goals</a></li>
+  <li><a href="#physical-setup" id="toc-physical-setup">Physical
+  setup</a></li>
+  <li><a href="#background-how-a-gpio-pin-works"
+  id="toc-background-how-a-gpio-pin-works">Background — how a GPIO pin
+  works</a></li>
+  <li><a href="#part-1-your-mission" id="toc-part-1-your-mission">Part 1
+  — Your mission</a>
+  <ul>
+  <li><a href="#step-1-make-a-led-blink"
+  id="toc-step-1-make-a-led-blink">Step 1 — Make a LED blink</a></li>
+  <li><a href="#step-2-hold-a-switch-to-turn-the-led-on"
+  id="toc-step-2-hold-a-switch-to-turn-the-led-on">Step 2 — Hold a
+  switch to turn the LED on</a></li>
+  <li><a href="#step-3-toggle-the-led-with-a-switch-press"
+  id="toc-step-3-toggle-the-led-with-a-switch-press">Step 3 — Toggle the
+  LED with a switch press</a></li>
+  </ul></li>
+  <li><a href="#part-2-guided-correction"
+  id="toc-part-2-guided-correction">Part 2 — Guided correction</a>
+  <ul>
+  <li><a href="#step-1-make-a-led-blink-1"
+  id="toc-step-1-make-a-led-blink-1">Step 1 — Make a LED blink</a></li>
+  <li><a href="#step-2-hold-a-switch-to-turn-the-led-on-1"
+  id="toc-step-2-hold-a-switch-to-turn-the-led-on-1">Step 2 — Hold a
+  switch to turn the LED on</a></li>
+  <li><a href="#step-3-toggle-the-led-with-a-switch-press-1"
+  id="toc-step-3-toggle-the-led-with-a-switch-press-1">Step 3 — Toggle
+  the LED with a switch press</a></li>
+  </ul></li>
+  <li><a href="#what-you-learned" id="toc-what-you-learned">What you
+  learned</a></li>
+  <li><a href="#next" id="toc-next">Next</a></li>
+  </ul>
+</nav>
+
+<main>
+<p>In this lab you will implement everything needed to control a digital
+output (an LED) and read a digital input (a switch) on the
+dsPIC33CK64MC105.</p>
+<h1 id="goals">Goals</h1>
+<p>In this lab you will:</p>
+<ul>
+<li>Make a LED blink</li>
+<li>Turn the LED on while you hold a switch</li>
+<li>Use the switch to toggle the LED on and off</li>
+</ul>
+<p>The tools involved are <strong>LED1</strong> and
+<strong>SW2</strong>.</p>
+<h1 id="physical-setup">Physical setup</h1>
+<p><img src="../assets/images/Curiosity-mapper.png" /> <em>Figure — Pin
+mapping of the dsPIC33CK64MC105 on the Curiosity Nano Explorer board.
+The left side shows the microcontroller’s physical pins; the right side
+shows how they are exposed on the Explorer board connectors. Place a
+jumper linking <strong>LED1</strong> to <strong>IO11</strong>, and
+another linking <strong>SW2</strong> to <strong>IO20</strong>.</em></p>
+<p>Once the jumpers are in place, you can move on to the software
+part.</p>
+<h1 id="background-how-a-gpio-pin-works">Background — how a GPIO pin
+works</h1>
+<p>Each pin of the dsPIC is controlled by three hardware registers. For
+pin <strong>RC5</strong>:</p>
+<ul>
+<li><code>_LATC5</code> (<strong>LAT</strong>ch) — the value the PIC
+<em>drives</em> on the pin when it is an output (0 or 1).</li>
+<li><code>_TRISC5</code> (<strong>TRIS</strong>tate) — pin direction:
+<code>0</code> = output, <code>1</code> = input.</li>
+<li><code>_RC5</code> (<strong>PORT</strong>) — the <em>actual</em>
+logic level present on the pin.</li>
+</ul>
+<p>[DIAGRAM: “gpio-registers” — Block diagram of one GPIO pin. Left: a
+“CPU” box. From the CPU, an arrow goes into a box “LAT (value to drive)”
+which feeds a small triangle (output driver) connected to the pin (a
+square labelled RC5 at the far right). A box “TRIS (direction)” sits
+above the driver with a dashed arrow acting as an enable/switch on the
+driver (annotate: 0 = output enabled, 1 = high-impedance / input). A box
+“PORT (real pin level)” reads directly from the pin wire and returns an
+arrow back to the CPU. Three colours, one per register. Caption: “Write
+LAT, configure TRIS, read PORT.”]</p>
+<h1 id="part-1-your-mission">Part 1 — Your mission</h1>
+<p>Work through the steps in order. For each step, write the code, flash
+it, and observe the board. The full correction (MCC screenshots and
+code) is at the end of the document — use it only to check yourself or
+if you are stuck.</p>
+<h2 id="step-1-make-a-led-blink">Step 1 — Make a LED blink</h2>
+<p><strong>Task.</strong> LED1 is wired to pin <strong>RC5</strong>.</p>
+<ol type="1">
+<li>In MCC Melody, configure RC5 as a digital output and give it the
+custom name <code>LED1</code>, then generate the code.</li>
+<li>Open the generated <code>pins.h</code> and identify the macros MCC
+created for <code>LED1</code>. Relate each macro to one of the three
+registers described in the Background.</li>
+<li>In <code>main.c</code>, make the LED blink with a period of one
+second (500 ms on, 500 ms off).</li>
+</ol>
+<p><em>Hints:</em> the delay macros <code>__delay_ms()</code> come from
+<code>&lt;libpic30.h&gt;</code> and require <code>FCY</code> to be
+defined <strong>before</strong> the include. <code>FCY</code> is the
+instruction clock: <code>FOSC / 2 = 100 MHz</code> on this board. Also
+note that LED1 is <strong>active low</strong>.</p>
+<h2 id="step-2-hold-a-switch-to-turn-the-led-on">Step 2 — Hold a switch
+to turn the LED on</h2>
+<p><strong>Task.</strong> SW2 is wired to pin <strong>RD1</strong>.</p>
+<ol type="1">
+<li>Add RD1 as a digital input named <code>SW2</code> in MCC. One extra
+option must be ticked so the pin has a defined level when the button is
+<em>not</em> pressed — find it.</li>
+<li>Write a loop that keeps the LED on while the button is held, and off
+otherwise.</li>
+<li>Before coding, answer: when the button is <strong>not
+pressed</strong>, what logic level does the pin read, and why? What does
+pressing the button do electrically?</li>
+</ol>
+<h2 id="step-3-toggle-the-led-with-a-switch-press">Step 3 — Toggle the
+LED with a switch press</h2>
+<p><strong>Task.</strong> Combine the two previous steps: one press of
+SW2 should cleanly invert the LED state (press → on, press again →
+off).</p>
+<ol type="1">
+<li>Write the naive version first: in the loop, if the button reads
+pressed, toggle the LED.</li>
+<li>Test it. Describe precisely what you observe when you press the
+button once. Is the behaviour reliable?</li>
+<li>Explain <em>why</em> it behaves this way. Two timescales are
+involved: how long does one loop iteration take, and how long does a
+human press last?</li>
+</ol>
+<p>Do not try to fully fix it yet — this problem (called
+<strong>debouncing</strong>) is the subject of the next lab. Just
+identify and explain it.</p>
+<div style="page-break-after: always;">
+
+</div>
+<h1 id="part-2-guided-correction">Part 2 — Guided correction</h1>
+<h2 id="step-1-make-a-led-blink-1">Step 1 — Make a LED blink</h2>
+<p>Open the MCC Melody interface by clicking the blue MCC icon. You can
+either click on the pin directly in the chip view (top-left corner) and
+select <code>GPIO_OUTPUT</code>, or use the pin table at the bottom of
+the screen and enable output on RC5. Either way, rename the pin to
+<code>LED1</code> to keep your code readable — then select <em>Project
+Resources</em> on the left and click <strong>Generate</strong>.</p>
+<p><img src="../assets/images/01_GPIO/01_led_configuration.png" />
+<em>Figure — MCC pin configuration: RC5 as GPIO_OUTPUT, custom name
+LED1.</em></p>
+<p>LED1 itself is located here on the board:</p>
+<p><img src="../assets/images/01_GPIO/00_led_location.png" /></p>
+<p>Generation modifies two files — <code>pins.h</code> and
+<code>pins.c</code> — declaring macros that map the human-readable name
+<code>LED1</code> to the RC5 registers:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// pins.h — macros for LED1 (mapped to pin RC5)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define LED1_SetHigh</span><span class="op">()</span><span class="pp">          </span><span class="op">(</span><span class="pp">_LATC5 </span><span class="op">=</span><span class="pp"> </span><span class="dv">1</span><span class="op">)</span><span class="pp">   </span><span class="co">// drive pin HIGH</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#define LED1_SetLow</span><span class="op">()</span><span class="pp">           </span><span class="op">(</span><span class="pp">_LATC5 </span><span class="op">=</span><span class="pp"> </span><span class="dv">0</span><span class="op">)</span><span class="pp">   </span><span class="co">// drive pin LOW</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#define LED1_Toggle</span><span class="op">()</span><span class="pp">           </span><span class="op">(</span><span class="pp">_LATC5 </span><span class="op">^=</span><span class="pp"> </span><span class="dv">1</span><span class="op">)</span><span class="pp">  </span><span class="co">// invert current output level</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#define LED1_GetValue</span><span class="op">()</span><span class="pp">         _RC5           </span><span class="co">// read actual pin level</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#define LED1_SetDigitalInput</span><span class="op">()</span><span class="pp">  </span><span class="op">(</span><span class="pp">_TRISC5 </span><span class="op">=</span><span class="pp"> </span><span class="dv">1</span><span class="op">)</span><span class="pp">  </span><span class="co">// set pin as input</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#define LED1_SetDigitalOutput</span><span class="op">()</span><span class="pp"> </span><span class="op">(</span><span class="pp">_TRISC5 </span><span class="op">=</span><span class="pp"> </span><span class="dv">0</span><span class="op">)</span><span class="pp">  </span><span class="co">// set pin as output</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> PINS_Initialize<span class="op">(</span><span class="dt">void</span><span class="op">);</span>  <span class="co">// applies the full pin configuration from MCC</span></span></code></pre></div>
+<p>Note the mapping: <code>Set*/Toggle</code> write
+<strong>LAT</strong>, <code>GetValue</code> reads <strong>PORT</strong>,
+<code>SetDigital*</code> writes <strong>TRIS</strong>.</p>
+<p>The blink itself:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/system.h&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/pins.h&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Fosc / 2 — required by libpic30 delay macros</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#define FCY </span><span class="dv">100000000</span><span class="bu">UL</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;libpic30.h&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    SYSTEM_Initialize<span class="op">();</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span><span class="op">(</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        __delay_ms<span class="op">(</span><span class="dv">500</span><span class="op">);</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        LED1_SetLow<span class="op">();</span>    <span class="co">// LED on (active low)</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        __delay_ms<span class="op">(</span><span class="dv">500</span><span class="op">);</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        LED1_SetHigh<span class="op">();</span>   <span class="co">// LED off</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Or, more simply, with the toggle macro:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    SYSTEM_Initialize<span class="op">();</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span><span class="op">(</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        __delay_ms<span class="op">(</span><span class="dv">500</span><span class="op">);</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        LED1_Toggle<span class="op">();</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The LED blinks every half second.</p>
+<h2 id="step-2-hold-a-switch-to-turn-the-led-on-1">Step 2 — Hold a
+switch to turn the LED on</h2>
+<p>In the MCC pin manager, add <strong>RD1</strong> as a digital input,
+name it <code>SW2</code>, and tick <strong><em>Weak Pullup</em></strong>
+— that is the extra option. Then <strong>Generate</strong>.</p>
+<p><img src="../assets/images/01_GPIO/02_switch_configuration.png" />
+<em>Figure — MCC pin configuration: RD1 as input, custom name SW2, Weak
+Pullup enabled.</em></p>
+<p>The weak pull-up keeps the pin at logic <strong>HIGH</strong> when
+the button is not pressed. Pressing the button connects the pin to
+ground, pulling it <strong>LOW</strong> — which is why the code checks
+for <code>== 0</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    SYSTEM_Initialize<span class="op">();</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span><span class="op">(</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span>SW2_GetValue<span class="op">()</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span>   <span class="co">// button pressed → pin pulled LOW</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            LED1_SetLow<span class="op">();</span>          <span class="co">// LED on</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>            LED1_SetHigh<span class="op">();</span>         <span class="co">// LED off</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="step-3-toggle-the-led-with-a-switch-press-1">Step 3 — Toggle the
+LED with a switch press</h2>
+<p>The naive version:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    SYSTEM_Initialize<span class="op">();</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span><span class="op">(</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span>SW2_GetValue<span class="op">()</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>            LED1_Toggle<span class="op">();</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This works — but not reliably: the LED ends up in a random state
+after each press. The issue is a <strong>timing mismatch</strong>
+between the loop and the human finger.</p>
+<p>One loop iteration takes microseconds; a typical button press lasts
+200–400 ms. During that window the loop executes <code>Toggle</code>
+thousands of times, so the LED flickers and lands on an unpredictable
+state.</p>
+<p>The diagram below illustrates the principle: a single press lasting
+~240 ms is seen as several separate LOW readings by the loop, producing
+several unwanted toggles.</p>
+<p><img
+src="../assets/images/01_GPIO/chronogramme_sans_delai.svg" /></p>
+<p>This is the <strong>debouncing problem</strong>. It can be solved
+properly using:</p>
+<ul>
+<li>a <strong>hardware timer</strong> to sample the button at a fixed
+rate and require a stable state before acting, or</li>
+<li><strong>interrupts</strong>, which let the MCU react the instant the
+pin changes rather than polling it in a loop.</li>
+</ul>
+<p>The timer approach is the subject of the next lab.</p>
+<h1 id="what-you-learned">What you learned</h1>
+<ul>
+<li>A GPIO pin is controlled through three registers:
+<strong>LAT</strong> (value driven), <strong>TRIS</strong> (direction),
+<strong>PORT</strong> (real level).</li>
+<li>MCC’s custom pin names generate readable macros
+(<code>LED1_Toggle()</code>, <code>SW2_GetValue()</code>).</li>
+<li>A <strong>weak pull-up</strong> gives an input a defined idle level;
+a pressed button pulls the line low (active-low logic).</li>
+<li>Polling a mechanical button in a fast loop is unreliable: contact
+<strong>bounce</strong> and the loop/press timescale mismatch cause
+multiple unwanted triggers.</li>
+</ul>
+<h1 id="next">Next</h1>
+<p><strong>Timer</strong> — precise, non-blocking timing with a hardware
+timer and interrupts, used to fix the debouncing problem left open
+here.</p>
+</main>
+
+<footer class="doc-footer">
+  <div class="footer-left">
+    <span>Votre Entreprise</span>
+    <a href="https://votresite.com">https://votresite.com</a>
+  </div>
+  <div class="footer-center">
+        <span>Confidentiel — Document préparé pour Entreprise
+Destinataire</span>
+      </div>
+  <div class="footer-right">
+    <span>Juin 2026</span>
+  </div>
+</footer>
+
+</body>
+</html>

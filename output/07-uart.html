@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="fr-FR" xml:lang="fr-FR" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="Cadoret Duncan" />
+  <meta name="date" content="Juin 2026" />
+  <title>Serial Output Project (UART) — Streaming Values to the
+PC  — Rapport d'étude des processus de communication sur un
+PIC33"</title>
+
+  <!-- Fonts (optionnel : remplacer par des polices locales pour offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Thème (variables CSS générées depuis project.yaml) -->
+  <link rel="stylesheet" href="./assets/css/theme.css" />
+  <!-- Base (structure, composants) -->
+  <link rel="stylesheet" href="./assets/css/base.css" />
+
+  
+    <style>html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    background-color: #232629;
+    color: #7a7c7d;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #7a7c7d;  padding-left: 4px; }
+div.sourceCode
+  { color: #cfcfc2; background-color: #232629; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { color: #cfcfc2; } /* Normal */
+code span.al { color: #95da4c; background-color: #4d1f24; font-weight: bold; } /* Alert */
+code span.an { color: #3f8058; } /* Annotation */
+code span.at { color: #2980b9; } /* Attribute */
+code span.bn { color: #f67400; } /* BaseN */
+code span.bu { color: #7f8c8d; } /* BuiltIn */
+code span.cf { color: #fdbc4b; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #3daee9; } /* Char */
+code span.cn { color: #27aeae; font-weight: bold; } /* Constant */
+code span.co { color: #7a7c7d; } /* Comment */
+code span.cv { color: #7f8c8d; } /* CommentVar */
+code span.do { color: #a43340; } /* Documentation */
+code span.dt { color: #2980b9; } /* DataType */
+code span.dv { color: #f67400; } /* DecVal */
+code span.er { color: #da4453; text-decoration: underline; } /* Error */
+code span.ex { color: #0099ff; font-weight: bold; } /* Extension */
+code span.fl { color: #f67400; } /* Float */
+code span.fu { color: #8e44ad; } /* Function */
+code span.im { color: #27ae60; } /* Import */
+code span.in { color: #c45b00; } /* Information */
+code span.kw { color: #cfcfc2; font-weight: bold; } /* Keyword */
+code span.op { color: #cfcfc2; } /* Operator */
+code span.ot { color: #27ae60; } /* Other */
+code span.pp { color: #27ae60; } /* Preprocessor */
+code span.re { color: #2980b9; background-color: #153042; } /* RegionMarker */
+code span.sc { color: #3daee9; } /* SpecialChar */
+code span.ss { color: #da4453; } /* SpecialString */
+code span.st { color: #f44f4f; } /* String */
+code span.va { color: #27aeae; } /* Variable */
+code span.vs { color: #da4453; } /* VerbatimString */
+code span.wa { color: #da4453; } /* Warning */</style>
+  </head>
+
+<body>
+
+
+
+<header class="doc-header">
+  <div class="header-brand">
+    <img src="./assets/images/UMC-EN.png" alt="Votre
+Entreprise" class="header-logo" />
+    <span class="header-company">Votre Entreprise</span>
+  </div>
+  <div class="header-doc-info">
+    <span class="header-title">Serial Output Project (UART) — Streaming
+Values to the PC</span>
+    <span class="header-meta">v1.0 · Juin 2026</span>
+  </div>
+</header>
+
+<nav id="TOC" role="doc-toc">
+  <strong>Table des matières</strong>
+  <ul>
+  <li><a href="#goals" id="toc-goals">Goals</a></li>
+  <li><a href="#physical-setup" id="toc-physical-setup">Physical
+  setup</a></li>
+  <li><a href="#background-how-the-serial-link-works"
+  id="toc-background-how-the-serial-link-works">Background — how the
+  serial link works</a></li>
+  <li><a href="#part-1-your-mission" id="toc-part-1-your-mission">Part 1
+  — Your mission</a>
+  <ul>
+  <li><a href="#step-1-add-and-configure-the-uart"
+  id="toc-step-1-add-and-configure-the-uart">Step 1 — Add and configure
+  the UART</a></li>
+  <li><a href="#step-2-printf-or-not-printf"
+  id="toc-step-2-printf-or-not-printf">Step 2 — <code>printf</code> or
+  not <code>printf</code>?</a></li>
+  <li><a href="#step-3-putting-it-together"
+  id="toc-step-3-putting-it-together">Step 3 — Putting it
+  together</a></li>
+  <li><a href="#step-4-read-it-on-the-pc"
+  id="toc-step-4-read-it-on-the-pc">Step 4 — Read it on the PC</a></li>
+  </ul></li>
+  <li><a href="#part-2-guided-correction"
+  id="toc-part-2-guided-correction">Part 2 — Guided correction</a>
+  <ul>
+  <li><a href="#step-1-add-and-configure-the-uart-1"
+  id="toc-step-1-add-and-configure-the-uart-1">Step 1 — Add and
+  configure the UART</a></li>
+  <li><a href="#step-2-printf-vs-uart1_write"
+  id="toc-step-2-printf-vs-uart1_write">Step 2 — <code>printf</code> vs
+  <code>UART1_Write</code></a></li>
+  <li><a href="#step-3-putting-it-together-1"
+  id="toc-step-3-putting-it-together-1">Step 3 — Putting it
+  together</a></li>
+  <li><a href="#step-4-reading-it-on-the-pc"
+  id="toc-step-4-reading-it-on-the-pc">Step 4 — Reading it on the
+  PC</a></li>
+  </ul></li>
+  <li><a href="#what-you-learned" id="toc-what-you-learned">What you
+  learned</a></li>
+  <li><a href="#next" id="toc-next">Next</a></li>
+  </ul>
+</nav>
+
+<main>
+<p>In this lab you will send the live proximity value to a PC over the
+serial port, so you can read it in a terminal or plot it in real time
+with the MPLAB Data Visualizer.</p>
+<p>This completes the sensor chain started in the previous lab: the
+proximity value now goes to the OLED <strong>and</strong> to the PC. The
+serial link also gives you something valuable for every project that
+follows: a <strong>debug console</strong>, a way to print values from
+the microcontroller straight to your computer.</p>
+<h1 id="goals">Goals</h1>
+<p>In this lab you will:</p>
+<ul>
+<li>Configure a <strong>UART</strong> and understand that it reaches the
+PC through the on-board debugger’s <strong>virtual COM port</strong>
+(CDC)</li>
+<li>Get the <strong>TX/RX crossover</strong> right — the most common
+UART mistake</li>
+<li>Send the proximity value to the PC, one reading per line</li>
+</ul>
+<p>The tools involved are the <strong>VCNL4200 sensor</strong>, the
+<strong>OLED</strong>, and the <strong>on-board debugger</strong> (which
+bridges the UART to USB).</p>
+<h1 id="physical-setup">Physical setup</h1>
+<p>There is <strong>nothing to wire</strong>. On the Curiosity Nano, one
+UART of the dsPIC is hard-wired to the on-board debugger, which forwards
+it to the PC as a virtual COM port over the <strong>same USB
+cable</strong> you already use to program the board. The two pins
+involved (RC10, RC11) are fixed by the board design, not something you
+jumper.</p>
+<h1 id="background-how-the-serial-link-works">Background — how the
+serial link works</h1>
+<p>UART is a two-wire asynchronous link: one line to transmit
+(<strong>TX</strong>), one to receive (<strong>RX</strong>). The key
+rule is that the two devices are <strong>crossed</strong>: one device’s
+TX must reach the other device’s RX.</p>
+<p>Each byte travels framed as <strong>8N1</strong>: the line idles
+HIGH, drops LOW for one <em>start bit</em>, then carries the 8 data bits
+(LSB first), then returns HIGH for one <em>stop bit</em>. At 115200
+baud, each bit lasts about 8.7 µs. Both sides must agree on this rate in
+advance — there is no clock line.</p>
+<p>[DIAGRAM: “uart-8n1-frame” — Chronogram of one UART byte on a single
+line. From left to right: a flat HIGH segment labelled “idle”, a one-bit
+LOW segment labelled “START”, eight bit-cells labelled “D0 (LSB)” to “D7
+(MSB)” with example values drawn as highs/lows (e.g. the byte 0x35), a
+one-bit HIGH segment labelled “STOP”, then flat HIGH “idle” again. Under
+the frame, a horizontal brace over one bit-cell annotated “1 bit =
+1/115200 s ≈ 8.7 µs”. Caption: “8N1: start bit + 8 data bits (LSB first)
++ stop bit, no clock line.”]</p>
+<h1 id="part-1-your-mission">Part 1 — Your mission</h1>
+<h2 id="step-1-add-and-configure-the-uart">Step 1 — Add and configure
+the UART</h2>
+<p><strong>Task.</strong> In MCC Melody, add <strong>UART1</strong> at
+<strong>115200 baud, 8N1</strong>, and assign its pins.</p>
+<ol type="1">
+<li>The board mapping labels the debugger lines <strong>CDC RX</strong>
+(pin RC10) and <strong>CDC TX</strong> (pin RC11) — named from the
+<strong>PC’s point of view</strong>. Deduce which dsPIC signal
+(<code>U1TX</code> or <code>U1RX</code>) goes on which pin. Be careful:
+getting this backwards is the classic UART mistake, and nothing will
+tell you — it compiles and runs, but the PC receives nothing.</li>
+<li>Generate, then list the functions in <code>uart1.h</code> you will
+need to send bytes.</li>
+</ol>
+<h2 id="step-2-printf-or-not-printf">Step 2 — <code>printf</code> or not
+<code>printf</code>?</h2>
+<p><strong>Task.</strong> MCC offers an option called <strong>“Redirect
+STDIO to UART”</strong>.</p>
+<ol type="1">
+<li>What does <code>printf()</code> do if this option is
+<strong>not</strong> enabled? Why is that failure mode particularly
+treacherous?</li>
+<li>Without STDIO redirection, write a small
+<code>UART_Print(const char *s)</code> helper that sends a string byte
+by byte, without ever losing a byte when the transmit buffer is
+full.</li>
+</ol>
+<h2 id="step-3-putting-it-together">Step 3 — Putting it together</h2>
+<p><strong>Task.</strong> Extend the proximity project: each loop
+iteration displays the value on the OLED <strong>and</strong> sends it
+to the PC, one value per line.</p>
+<ol type="1">
+<li>What must terminate each transmitted line for terminals and the Data
+Visualizer to separate the values correctly?</li>
+</ol>
+<h2 id="step-4-read-it-on-the-pc">Step 4 — Read it on the PC</h2>
+<p><strong>Task.</strong> On your Linux machine:</p>
+<ol type="1">
+<li>Find which device file the virtual COM port appears as.</li>
+<li>Open it at 115200 baud with the tool of your choice and watch the
+values react to your hand.</li>
+<li>If you get <em>permission denied</em>, what is the standard
+fix?</li>
+<li>Open the same port in the <strong>MPLAB Data Visualizer</strong> and
+plot the value as a live curve.</li>
+</ol>
+<h1 id="part-2-guided-correction">Part 2 — Guided correction</h1>
+<h2 id="step-1-add-and-configure-the-uart-1">Step 1 — Add and configure
+the UART</h2>
+<p>Open MCC Melody and add the <strong>UART1</strong> module:</p>
+<ul>
+<li><strong>Baud rate</strong>: <code>115200</code></li>
+<li><strong>Data format</strong>: <code>8N1</code> (8 data bits, no
+parity, 1 stop bit) — the defaults</li>
+</ul>
+<p>The crossover reasoning: <strong>CDC RX</strong> is what the <em>PC
+receives</em> → it must be fed by the <strong>dsPIC’s TX</strong>
+(<code>U1TX</code>). <strong>CDC TX</strong> is what the <em>PC
+sends</em> → it must arrive on the <strong>dsPIC’s RX</strong>
+(<code>U1RX</code>). So in the <strong>Pin Manager (Grid
+View)</strong>:</p>
+<ul>
+<li><code>U1TX</code> → <strong>RC10</strong> (CDC RX)</li>
+<li><code>U1RX</code> → <strong>RC11</strong> (CDC TX)</li>
+</ul>
+<p>Then <strong>Generate</strong>.</p>
+<p><img src="../assets/images/05_UART/01_uart_pins.png" /> <em>Figure —
+UART1 outputs assigned in the Pin Grid View: U1TX on RC10, U1RX on
+RC11.</em></p>
+<p>[DIAGRAM: “uart-crossover” — Three boxes left to right. Box 1:
+“dsPIC33CK” with two labelled pins on its right edge: “U1TX (RC10)” and
+“U1RX (RC11)”. Box 2: “On-board debugger” with two labelled pins on its
+left edge: “CDC RX” and “CDC TX”, and on its right edge a single “USB”
+port. Box 3: “PC” with “/dev/ttyACM0, 115200 8N1”. Draw the two UART
+wires CROSSING between box 1 and box 2: U1TX → CDC RX and CDC TX → U1RX,
+with the crossing point highlighted and annotated “labels are from the
+PC’s point of view!”. A single thick line “same USB cable as
+programming” between debugger and PC. Caption: “TX talks to RX: the
+crossover happens between the dsPIC and the debugger.”]</p>
+<p>This generates <code>uart1.h</code> / <code>uart1.c</code>, exposing
+among others:</p>
+<ul>
+<li><code>UART1_Write(uint8_t data)</code> — send one byte</li>
+<li><code>UART1_IsTxReady()</code> — true when the transmit buffer can
+accept a byte</li>
+<li><code>UART1_Read()</code> / <code>UART1_IsRxReady()</code> — for the
+receive side (not used here)</li>
+</ul>
+<h2 id="step-2-printf-vs-uart1_write">Step 2 — <code>printf</code> vs
+<code>UART1_Write</code></h2>
+<p>If <strong>“Redirect STDIO to UART”</strong> is not enabled — which
+is the default — <code>printf</code> compiles but sends its output
+<strong>nowhere</strong>, and the screen on the PC stays empty. That
+silent failure is treacherous because it looks exactly like a wiring
+problem: no error, no warning, no output.</p>
+<p>Since STDIO redirection is not enabled here, we send bytes explicitly
+with <code>UART1_Write</code>, wrapped in a helper that waits for the
+transmitter to be free before each byte:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Send a string over the UART, byte by byte</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span> UART_Print<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>s<span class="op">)</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(*</span>s<span class="op">)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> <span class="op">(!</span>UART1_IsTxReady<span class="op">())</span> <span class="op">{</span> <span class="op">}</span>   <span class="co">// wait until the TX buffer is free</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        UART1_Write<span class="op">(*</span>s<span class="op">++);</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="step-3-putting-it-together-1">Step 3 — Putting it together</h2>
+<p>We reuse the proximity read and OLED display from the previous lab,
+and add one serial print per loop. The
+<strong><code>\r\n</code></strong> (carriage return + newline) at the
+end puts each value on its own line — required for the Data Visualizer
+to plot them and for terminals to display them cleanly.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/system.h&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/system/pins.h&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/i2c_host/i2c1.h&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;mcc_generated_files/uart/uart1.h&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;ssd1306.h&quot;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#define FCY </span><span class="dv">100000000</span><span class="bu">UL</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;libpic30.h&gt;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#define VCNL4200_ADDR     </span><span class="bn">0x51</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="pp">#define VCNL4200_PS_DATA  </span><span class="bn">0x08</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="pp">#define VCNL4200_PS_CONF  </span><span class="bn">0x03</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span> VCNL4200_Init<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> cfg<span class="op">[</span><span class="dv">3</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span> VCNL4200_PS_CONF<span class="op">,</span> <span class="bn">0x08</span><span class="op">,</span> <span class="bn">0x00</span> <span class="op">};</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>I2C1_IsBusy<span class="op">())</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    I2C1_Write<span class="op">(</span>VCNL4200_ADDR<span class="op">,</span> cfg<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span>cfg<span class="op">));</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>I2C1_IsBusy<span class="op">())</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">uint16_t</span> VCNL4200_ReadReg<span class="op">(</span><span class="dt">uint8_t</span> reg<span class="op">)</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> rx<span class="op">[</span><span class="dv">2</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span><span class="dv">0</span><span class="op">,</span> <span class="dv">0</span><span class="op">};</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>I2C1_IsBusy<span class="op">())</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    I2C1_WriteRead<span class="op">(</span>VCNL4200_ADDR<span class="op">,</span> <span class="op">&amp;</span>reg<span class="op">,</span> <span class="dv">1</span><span class="op">,</span> rx<span class="op">,</span> <span class="dv">2</span><span class="op">);</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>I2C1_IsBusy<span class="op">())</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">(</span><span class="dt">uint16_t</span><span class="op">)(</span>rx<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">|</span> <span class="op">(</span>rx<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">&lt;&lt;</span> <span class="dv">8</span><span class="op">));</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span> UART_Print<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>s<span class="op">)</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(*</span>s<span class="op">)</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> <span class="op">(!</span>UART1_IsTxReady<span class="op">())</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        UART1_Write<span class="op">(*</span>s<span class="op">++);</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="dt">uint16_t</span> prox<span class="op">;</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> buffer<span class="op">[</span><span class="dv">16</span><span class="op">];</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    SYSTEM_Initialize<span class="op">();</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>    SSD1306_Init<span class="op">();</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    SSD1306_Clear<span class="op">();</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    VCNL4200_Init<span class="op">();</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>        prox <span class="op">=</span> VCNL4200_ReadReg<span class="op">(</span>VCNL4200_PS_DATA<span class="op">);</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>        sprintf<span class="op">(</span>buffer<span class="op">,</span> <span class="st">&quot;PROX:</span><span class="sc">%5u</span><span class="st">   &quot;</span><span class="op">,</span> prox<span class="op">);</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>        SSD1306_SelectPage<span class="op">(</span><span class="dv">0</span><span class="op">);</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>        SSD1306_WriteString<span class="op">(</span>buffer<span class="op">);</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>        sprintf<span class="op">(</span>buffer<span class="op">,</span> <span class="st">&quot;</span><span class="sc">%u\r\n</span><span class="st">&quot;</span><span class="op">,</span> prox<span class="op">);</span>   <span class="co">// one value per line</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>        UART_Print<span class="op">(</span>buffer<span class="op">);</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>        __delay_ms<span class="op">(</span><span class="dv">100</span><span class="op">);</span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="step-4-reading-it-on-the-pc">Step 4 — Reading it on the PC</h2>
+<p>Build and program the board, then open the virtual COM port at
+<strong>115200 baud</strong>.</p>
+<p>On <strong>Linux</strong>, find the port and read it:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> /dev/ttyACM<span class="pp">*</span>            <span class="co"># usually /dev/ttyACM0</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">screen</span> /dev/ttyACM0 115200 <span class="co"># quit with Ctrl+A then K then y</span></span></code></pre></div>
+<p>If <code>screen</code> is not installed,
+<code>minicom -D /dev/ttyACM0 -b 115200</code> works too, or simply
+<code>stty -F /dev/ttyACM0 115200 &amp;&amp; cat /dev/ttyACM0</code>
+just to watch the stream. If you get a <em>permission denied</em>, add
+yourself to the <code>dialout</code> group
+(<code>sudo usermod -aG dialout $USER</code>, then log out and back
+in).</p>
+<p>You should see the proximity values scroll by, rising when you move
+your hand toward the sensor. In the <strong>MPLAB Data
+Visualizer</strong>, select the same COM port and baud rate to plot the
+values as a live curve — the software oscilloscope you were missing.</p>
+<p><code>[CAPTURE: terminal showing the proximity values streaming and reacting to a hand]</code>
+<code>[CAPTURE: MPLAB Data Visualizer plotting the same stream as a live curve]</code></p>
+<h1 id="what-you-learned">What you learned</h1>
+<ul>
+<li>A UART is <strong>crossed</strong>: the microcontroller’s TX goes to
+the receiver’s RX. On this board, labels are named from the PC’s side
+(CDC RX = the dsPIC’s TX).</li>
+<li>The Curiosity Nano bridges the UART to a <strong>virtual COM
+port</strong> over the debugger’s USB — no extra cable or adapter.</li>
+<li>Ending each message with <code>\r\n</code> is what makes terminals
+and the Data Visualizer treat values as separate lines.</li>
+<li>Without <strong>“Redirect STDIO to UART”</strong>,
+<code>printf</code> sends nothing — send bytes with
+<code>UART1_Write</code> instead.</li>
+</ul>
+<h1 id="next">Next</h1>
+<p><strong>SPI</strong> — a faster, synchronous link, used on this board
+to reach the DAC (MCP4821) that drives the speaker, and later the
+addressable RGB ring.</p>
+<blockquote>
+<p><em>Deferred refinement:</em> driving the on-board colour LED from
+the proximity value (three PWM channels) is left as a later addition —
+the LED is wired to pins the high-resolution PWM module cannot reach
+directly, so it needs either a different PWM peripheral routing or a
+software (bit-banged) PWM.</p>
+</blockquote>
+</main>
+
+<footer class="doc-footer">
+  <div class="footer-left">
+    <span>Votre Entreprise</span>
+    <a href="https://votresite.com">https://votresite.com</a>
+  </div>
+  <div class="footer-center">
+        <span>Confidentiel — Document préparé pour Entreprise
+Destinataire</span>
+      </div>
+  <div class="footer-right">
+    <span>Juin 2026</span>
+  </div>
+</footer>
+
+</body>
+</html>
